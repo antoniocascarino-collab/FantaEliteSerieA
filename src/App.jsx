@@ -324,7 +324,7 @@ function Hero({ settings }) {
         textTransform: 'uppercase',
         marginBottom: '1.5rem',
       }}>
-        Stagione {settings?.season || '2025/2026'}
+        Stagione {settings?.season || '2026/2027'}
       </div>
 
       <h1 className="fade-up-1" style={{
@@ -341,8 +341,8 @@ function Hero({ settings }) {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 4s linear infinite',
-        }}>FANTA</span>
-        <span style={{ display: 'block', color: 'var(--white)' }}>ELITE</span>
+        }}>FANTAELITE</span>
+        <span style={{ display: 'block', color: 'var(--white)' }}>SERIE A</span>
       </h1>
 
       <p className="fade-up-2" style={{
