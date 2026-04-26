@@ -648,15 +648,17 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
       if (stripeError) throw new Error(stripeError.message)
 
       // 3. Aggiorna Supabase
-      const { error: dbError } = await supabase
+      console.log('Aggiornamento Supabase — regId:', regId, 'paymentIntent:', paymentIntent.id)
+      const { data: updData, error: dbError } = await supabase
         .from('registrations')
         .update({
           payment_status: 'completed',
           payment_ref: paymentIntent.id,
-          payment_amount: selectedTicket.price,
+          payment_amount: Number(selectedTicket.price),
         })
         .eq('id', regId)
-
+        .select()
+      console.log('Risultato update:', updData, dbError)
       if (dbError) throw dbError
       onSuccess()
     } catch (err) {
