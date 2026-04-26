@@ -764,6 +764,21 @@ function FormIscrizione({ tickets, settings }) {
     setLoading(true)
     setErrorMsg('')
     try {
+      // Controlla se email + ticket già acquistato
+      const { data: existing } = await supabase
+        .from('registrations')
+        .select('id')
+        .eq('email', form.email)
+        .eq('ticket_id', form.ticketId)
+        .eq('payment_status', 'completed')
+        .maybeSingle()
+
+      if (existing) {
+        setErrorMsg('Questa email ha già acquistato questo ticket. Usa un indirizzo email diverso.')
+        setLoading(false)
+        return
+      }
+
       const newId = crypto.randomUUID()
       const { error } = await supabase
         .from('registrations')
