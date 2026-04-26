@@ -647,19 +647,18 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
 
       if (stripeError) throw new Error(stripeError.message)
 
-      // 3. Aggiorna Supabase
-      console.log('Aggiornamento Supabase — regId:', regId, 'paymentIntent:', paymentIntent.id)
-      const { data: updData, error: dbError } = await supabase
-        .from('registrations')
-        .update({
-          payment_status: 'completed',
-          payment_ref: paymentIntent.id,
-          payment_amount: Number(selectedTicket.price),
-        })
-        .eq('id', regId)
-        .select()
-      console.log('Risultato update:', updData, dbError)
-      if (dbError) throw dbError
+      // 3. Aggiorna Supabase tramite backend (bypassa RLS)
+      const confirmRes = await fetch('/api/confirm-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentIntentId: paymentIntent.id,
+          registrationId: regId,
+          amount: Number(selectedTicket.price),
+        }),
+      })
+      const confirmData = await confirmRes.json()
+      if (!confirmRes.ok) throw new Error(confirmData.error || 'Errore aggiornamento')
       onSuccess()
     } catch (err) {
       console.error(err)
