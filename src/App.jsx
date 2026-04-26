@@ -1016,7 +1016,7 @@ function Footer({ settings }) {
       <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', letterSpacing: '0.1em', color: 'var(--gold)', marginBottom: '0.75rem' }}>
         FANTAELITE SERIE A
       </div>
-      <div>© {new Date().getFullYear()} FantaElite — Stagione {settings?.season || '2025/2026'}</div>
+      <div>© {new Date().getFullYear()} FantaElite Serie A — Stagione {settings?.season || '2026/2027'}</div>
       {settings?.instagram_url && (
         <div style={{ marginTop: '0.75rem' }}>
           <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
