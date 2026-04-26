@@ -763,20 +763,20 @@ function FormIscrizione({ tickets, settings }) {
     setLoading(true)
     setErrorMsg('')
     try {
-      const { data, error } = await supabase
+      const newId = crypto.randomUUID()
+      const { error } = await supabase
         .from('registrations')
         .insert({
+          id: newId,
           first_name: form.firstName,
           last_name: form.lastName,
           email: form.email,
           ticket_id: form.ticketId,
           payment_status: 'pending',
         })
-        .select()
-        .single()
 
       if (error) throw error
-      setRegId(data.id)
+      setRegId(newId)
       setStep('payment')
     } catch (err) {
       console.error(err)
