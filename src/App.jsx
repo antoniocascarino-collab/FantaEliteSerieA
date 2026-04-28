@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Montepremi from './Montepremi.jsx'
 import { supabase } from './supabase.js'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -144,7 +145,7 @@ function ComingSoon({ settings }) {
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 3s linear infinite',
         }}>
-          FANTAELITE SERIE A
+          FANTALITE
         </div>
 
         <div style={{
@@ -217,13 +218,26 @@ const TicketIcon = ({ size = 20 }) => (
 /* ─────────────────────────────────────────────
    NAVBAR
 ───────────────────────────────────────────── */
-function Navbar({ settings }) {
+function Navbar({ settings, onNavigate, currentPage }) {
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  const linkStyle = (active) => ({
+    color: active ? 'var(--gold)' : 'var(--muted)',
+    textDecoration: 'none',
+    fontSize: '0.875rem',
+    letterSpacing: '0.05em',
+    transition: 'color 0.2s',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-body)',
+    padding: 0,
+  })
 
   return (
     <nav style={{
@@ -235,46 +249,65 @@ function Navbar({ settings }) {
       borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
       transition: 'all 0.3s ease',
     }}>
-      <div style={{
-        fontFamily: 'var(--font-display)',
-        fontSize: '1.8rem',
-        letterSpacing: '0.08em',
-        color: 'var(--gold)',
-      }}>
-        FANTAELITE SERIE A
-      </div>
+      {/* Logo — click torna a home */}
+      <button
+        onClick={() => onNavigate('home')}
+        style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.08em', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        FANTALITE
+      </button>
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <a href="#documenti" style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '0.875rem', letterSpacing: '0.05em', transition: 'color 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-          Documenti
-        </a>
-        <a href="#classifica" style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '0.875rem', letterSpacing: '0.05em', transition: 'color 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-          Classifica
-        </a>
+        {/* Link home-only (anchor scroll) */}
+        {currentPage === 'home' && (
+          <>
+            <a href="#documenti" style={linkStyle(false)}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+              Documenti
+            </a>
+            <a href="#classifica" style={linkStyle(false)}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+              Classifica
+            </a>
+          </>
+        )}
+
+        {/* Montepremi link — sempre visibile */}
+        <button
+          onClick={() => onNavigate('montepremi')}
+          style={linkStyle(currentPage === 'montepremi')}
+          onMouseEnter={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--white)'}
+          onMouseLeave={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--muted)'}
+        >
+          🏆 Montepremi
+        </button>
+
         {settings?.instagram_url && (
           <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
             style={{ color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', fontSize: '0.875rem' }}>
             <InstagramIcon size={16} />
           </a>
         )}
-        <a href="#iscrizione" style={{
-          padding: '0.5rem 1.25rem',
-          background: 'var(--gold)',
-          color: 'var(--black)',
-          borderRadius: '100px',
-          textDecoration: 'none',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          letterSpacing: '0.05em',
-          transition: 'opacity 0.2s',
-        }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-          Iscriviti
-        </a>
+
+        {currentPage === 'home' && (
+          <a href="#iscrizione" style={{
+            padding: '0.5rem 1.25rem',
+            background: 'var(--gold)',
+            color: 'var(--black)',
+            borderRadius: '100px',
+            textDecoration: 'none',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            letterSpacing: '0.05em',
+            transition: 'opacity 0.2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            Iscriviti
+          </a>
+        )}
       </div>
     </nav>
   )
@@ -324,7 +357,7 @@ function Hero({ settings }) {
         textTransform: 'uppercase',
         marginBottom: '1.5rem',
       }}>
-        Stagione {settings?.season || '2026/2027'}
+        Stagione {settings?.season || '2025/2026'}
       </div>
 
       <h1 className="fade-up-1" style={{
@@ -341,8 +374,8 @@ function Hero({ settings }) {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 4s linear infinite',
-        }}>FANTAELITE</span>
-        <span style={{ display: 'block', color: 'var(--white)' }}>SERIE A</span>
+        }}>FANTA</span>
+        <span style={{ display: 'block', color: 'var(--white)' }}>ELITE</span>
       </h1>
 
       <p className="fade-up-2" style={{
@@ -1014,9 +1047,9 @@ function Footer({ settings }) {
       letterSpacing: '0.05em',
     }}>
       <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', letterSpacing: '0.1em', color: 'var(--gold)', marginBottom: '0.75rem' }}>
-        FANTAELITE SERIE A
+        FANTALITE
       </div>
-      <div>© {new Date().getFullYear()} FantaElite Serie A — Stagione {settings?.season || '2026/2027'}</div>
+      <div>© {new Date().getFullYear()} FantaElite — Stagione {settings?.season || '2025/2026'}</div>
       {settings?.instagram_url && (
         <div style={{ marginTop: '0.75rem' }}>
           <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
@@ -1039,6 +1072,7 @@ export default function App() {
   const [tickets, setTickets]     = useState([])
   const [documents, setDocuments] = useState([])
   const [loading, setLoading]     = useState(true)
+  const [page, setPage]           = useState('home')   // 'home' | 'montepremi'
 
   useEffect(() => {
     async function loadData() {
@@ -1073,7 +1107,7 @@ export default function App() {
             WebkitTextFillColor: 'transparent',
             animation: 'shimmer 2s linear infinite',
           }}>
-            FANTAELITE SERIE A
+            FANTALITE
           </div>
         </div>
       </>
@@ -1089,10 +1123,22 @@ export default function App() {
     )
   }
 
+  /* ── pagina montepremi ── */
+  if (page === 'montepremi') {
+    return (
+      <>
+        <GlobalStyles />
+        <Navbar settings={settings} onNavigate={setPage} currentPage={page} />
+        <Montepremi onBack={() => setPage('home')} settings={settings} />
+      </>
+    )
+  }
+
+  /* ── pagina principale ── */
   return (
     <>
       <GlobalStyles />
-      <Navbar settings={settings} />
+      <Navbar settings={settings} onNavigate={setPage} currentPage={page} />
       <main>
         <Hero settings={settings} />
         <Documenti documents={documents} />
