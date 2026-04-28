@@ -491,7 +491,7 @@ function TierPanel({ tier }) {
           color: 'var(--muted)',
           lineHeight: 1.6,
         }}>
-          <strong style={{ color: 'rgba(255,255,255,0.5)' }}>Nota:</strong> Le immagini e le descrizioni dei premi hanno scopo puramente illustrativo. I premi fisici potranno subire variazioni di modello o colore in base alla disponibilità al momento dell'assegnazione, mantenendo invariata la categoria del premio. FantaElite si riserva il diritto di sostituire premi equivalenti in caso di indisponibilità.
+          <strong style={{ color: 'rgba(255,255,255,0.5)' }}>Nota:</strong> Le immagini e le descrizioni dei premi hanno scopo puramente illustrativo. I premi fisici potranno subire variazioni di modello o colore in base alla disponibilità al momento dell'assegnazione, mantenendo invariata la categoria del premio. FantaElite Seria A si riserva il diritto di sostituire premi equivalenti in caso di indisponibilità.
         </div>
       </div>
     </div>
@@ -677,10 +677,10 @@ export default function Montepremi({ onBack, settings }) {
       {/* ── FOOTER NOTE ── */}
       <div style={{ borderTop: '1px solid var(--border)', padding: '2.5rem 2rem', textAlign: 'center' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', letterSpacing: '0.1em', color: 'var(--gold)', marginBottom: '0.5rem' }}>
-          FANTALITE
+          FANTAELITE SERIE A
         </div>
         <div style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.7, maxWidth: 560, margin: '0 auto' }}>
-          Montepremi Ufficiale · Stagione {settings?.season || '2026/27'} · Leghe FC · Serie A<br />
+          Montepremi Ufficiale · Stagione {settings?.season || '2026/27'} · Serie A<br />
           Le immagini dei premi hanno scopo puramente illustrativo.
         </div>
       </div>
