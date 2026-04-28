@@ -145,7 +145,7 @@ function ComingSoon({ settings }) {
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 3s linear infinite',
         }}>
-          FANTALITE
+          FANTAELITE SERIE A
         </div>
 
         <div style={{
@@ -254,7 +254,7 @@ function Navbar({ settings, onNavigate, currentPage }) {
         onClick={() => onNavigate('home')}
         style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.08em', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
-        FANTALITE
+        FANTAELITE SERIE A
       </button>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
@@ -1047,7 +1047,7 @@ function Footer({ settings }) {
       letterSpacing: '0.05em',
     }}>
       <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', letterSpacing: '0.1em', color: 'var(--gold)', marginBottom: '0.75rem' }}>
-        FANTALITE
+        FANTAELITE SERIE A
       </div>
       <div>© {new Date().getFullYear()} FantaElite — Stagione {settings?.season || '2025/2026'}</div>
       {settings?.instagram_url && (
@@ -1107,7 +1107,7 @@ export default function App() {
             WebkitTextFillColor: 'transparent',
             animation: 'shimmer 2s linear infinite',
           }}>
-            FANTALITE
+            FANTAELITE SERIE A
           </div>
         </div>
       </>
