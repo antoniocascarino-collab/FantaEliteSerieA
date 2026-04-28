@@ -132,7 +132,7 @@ function ComingSoon({ settings }) {
           marginBottom: '1rem',
           textTransform: 'uppercase',
         }}>
-          La Fantalega d'Élite
+          La lega d'Élite
         </div>
         <div style={{
           fontFamily: 'var(--font-display)',
@@ -145,7 +145,7 @@ function ComingSoon({ settings }) {
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 3s linear infinite',
         }}>
-          FANTAELITE SERIE A
+          ELITE SERIE A
         </div>
 
         <div style={{
@@ -254,7 +254,7 @@ function Navbar({ settings, onNavigate, currentPage }) {
         onClick={() => onNavigate('home')}
         style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.08em', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
-        FANTAELITE SERIE A
+        ELITE SERIE A
       </button>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
@@ -374,8 +374,8 @@ function Hero({ settings }) {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 4s linear infinite',
-        }}>FANTA</span>
-        <span style={{ display: 'block', color: 'var(--white)' }}>ELITE</span>
+        }}>FANTA ELITE</span>
+        <span style={{ display: 'block', color: 'var(--white)' }}>SERIE A</span>
       </h1>
 
       <p className="fade-up-2" style={{
