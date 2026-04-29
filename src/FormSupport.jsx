@@ -308,24 +308,32 @@ export default function FormSupport({ settings }) {
               <div>
                 <label style={labelStyle}>Oggetto *</label>
                 <select
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    ...inputStyle,
-                    cursor: 'pointer',
-                  }}
+    name="subject"
+    value={form.subject}
+    onChange={handleChange}
+    required
+    style={{
+      ...inputStyle,
+      cursor: 'pointer',
+      color: form.subject ? 'var(--white)' : 'var(--muted)',
+      WebkitAppearance: 'none',
+      MozAppearance: 'none',
+      appearance: 'none',
+      backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23f0b429' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'right 1rem center',
+      paddingRight: '2.5rem',
+    }}
                   onFocus={e => e.target.style.borderColor = 'var(--gold)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 >
-                  <option value="">Seleziona un oggetto</option>
-                  <option value="iscrizione">Problemi con l'iscrizione</option>
-                  <option value="pagamento">Problemi con il pagamento</option>
-                  <option value="regolamento">Chiarimenti sul regolamento</option>
-                  <option value="premi">Informazioni sui premi</option>
-                  <option value="tecnico">Problema tecnico</option>
-                  <option value="altro">Altro</option>
+                  <option value="" style={{ background: '#111220', color: '#8a8a9a' }}>Seleziona un oggetto</option>
+<option value="iscrizione" style={{ background: '#111220', color: '#f5f5f0' }}>Problemi con l'iscrizione</option>
+<option value="pagamento" style={{ background: '#111220', color: '#f5f5f0' }}>Problemi con il pagamento</option>
+<option value="regolamento" style={{ background: '#111220', color: '#f5f5f0' }}>Chiarimenti sul regolamento</option>
+<option value="premi" style={{ background: '#111220', color: '#f5f5f0' }}>Informazioni sui premi</option>
+<option value="tecnico" style={{ background: '#111220', color: '#f5f5f0' }}>Problema tecnico</option>
+<option value="altro" style={{ background: '#111220', color: '#f5f5f0' }}>Altro</option>
                 </select>
               </div>
 
