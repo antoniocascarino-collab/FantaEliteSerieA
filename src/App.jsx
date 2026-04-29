@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Montepremi from './Montepremi.jsx'
+import FormSupport from './FormSupport.jsx'
 import { supabase } from './supabase.js'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -270,6 +271,11 @@ function Navbar({ settings, onNavigate, currentPage }) {
               onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
               Classifica
+            </a>
+            <a href="#supporto" style={linkStyle(false)}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+              Supporto
             </a>
           </>
         )}
@@ -1144,6 +1150,7 @@ export default function App() {
         <Documenti documents={documents} />
         <InstagramBanner settings={settings} />
         <FormIscrizione tickets={tickets} settings={settings} />
+        <FormSupport settings={settings} />
       </main>
       <Footer settings={settings} />
     </>
