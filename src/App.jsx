@@ -146,7 +146,7 @@ function ComingSoon({ settings }) {
           WebkitTextFillColor: 'transparent',
           animation: 'shimmer 3s linear infinite',
         }}>
-          ELITE SERIE A
+          FANTAELITE SERIE A
         </div>
 
         <div style={{
@@ -255,7 +255,7 @@ function Navbar({ settings, onNavigate, currentPage }) {
         onClick={() => onNavigate('home')}
         style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.08em', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
-        ELITE SERIE A
+        FANTAELITE SERIE A
       </button>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
