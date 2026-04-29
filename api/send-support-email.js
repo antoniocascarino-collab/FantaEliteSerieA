@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
     // Email di supporto ricevuta dal team
     const supportEmailOptions = {
-      from: `"FantaElite Support" <${process.env.SMTP_USER}>`,
+      from: `"FantaElite Serie A Support" <${process.env.SMTP_USER}>`,
       to: 'fantaeliteseriea@gmail.com',
       subject: `[SUPPORTO] ${subject} - da ${name}`,
       html: `
@@ -93,64 +93,43 @@ export default async function handler(req, res) {
 
     // Email di conferma all'utente
     const userConfirmationOptions = {
-      from: `"FantaElite Support" <${process.env.SMTP_USER}>`,
+      from: `"FantaElite Serie A Support" <${process.env.SMTP_USER}>`,
       to: email,
-      subject: '✓ Richiesta di supporto ricevuta - FantaElite',
+      subject: 'Conferma richiesta - FantaElite Serie A',
       html: `
         <!DOCTYPE html>
         <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #f0b429 0%, #c8952a 100%); color: #08090d; padding: 30px; border-radius: 8px 8px 0 0; text-align: center; }
-            .header h1 { margin: 0 0 10px 0; font-size: 28px; letter-spacing: 0.1em; }
-            .content { background: #f5f5f0; padding: 30px; border-radius: 0 0 8px 8px; }
-            .success-badge { background: #6ee7b7; color: #08090d; padding: 10px 20px; border-radius: 20px; display: inline-block; font-weight: bold; margin-bottom: 20px; }
-            .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f0b429; }
-            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #999; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>FANTALITE</h1>
-              <p style="margin: 0; opacity: 0.9;">La Fantalega d'Élite</p>
-            </div>
-            <div class="content">
-              <div class="success-badge">✓ Richiesta Ricevuta</div>
-              
-              <p>Ciao <strong>${name}</strong>,</p>
-              
-              <p>Abbiamo ricevuto la tua richiesta di supporto e il nostro team ti risponderà entro <strong>24-48 ore</strong>.</p>
-              
-              <div class="info-box">
-                <p style="margin: 0 0 10px 0;"><strong>Riepilogo della tua richiesta:</strong></p>
-                <p style="margin: 5px 0;"><strong>Oggetto:</strong> ${subject}</p>
-                <p style="margin: 5px 0;"><strong>Messaggio:</strong></p>
-                <p style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px; white-space: pre-wrap;">${message}</p>
-              </div>
-              
-              <p><strong>💡 Nel frattempo:</strong></p>
-              <ul>
-                <li>Controlla la cartella <strong>spam/posta indesiderata</strong> per la nostra risposta</li>
-                <li>Consulta il <strong>regolamento ufficiale</strong> per domande frequenti</li>
-                <li>Seguici su <strong>Instagram</strong> per aggiornamenti</li>
-              </ul>
-              
-              <div class="footer">
-                <p><strong>FantaElite Support</strong></p>
-                <p>fantaeliteseriea@gmail.com</p>
-                <p style="margin-top: 15px; font-size: 11px;">
-                  Questa è un'email automatica. Non rispondere a questo messaggio.<br />
-                  Riceverai una risposta personale entro 24-48 ore.
-                </p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: #f0b429; color: #08090d; padding: 20px; text-align: center; }
+      .content { background: #f5f5f0; padding: 30px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>FANTAELITE SERIE A</h1>
+      </div>
+      <div class="content">
+        <p>Ciao <strong>${name}</strong>,</p>
+        
+        <p>Abbiamo ricevuto la tua richiesta di supporto.</p>
+        <p>Il nostro team ti risponderà entro 24-48 ore.</p>
+        
+        <p><strong>Riepilogo:</strong></p>
+        <p>Oggetto: ${subject}</p>
+        <p>Messaggio: ${message}</p>
+        
+        <p>Cordiali saluti,<br>
+        <strong>Team FantaElite Serie A</strong><br>
+        fantaeliteseriea@gmail.com</p>
+      </div>
+    </div>
+  </body>
+  </html>
+`,
     }
 
     // Invia entrambe le email
