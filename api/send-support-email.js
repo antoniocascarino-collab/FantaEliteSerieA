@@ -90,7 +90,7 @@ export default async function handler(req, res) {
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎯 FANTALITE</h1>
+      <h1>🎯 FANTAELITE SERIE A</h1>
       <p>NUOVA RICHIESTA DI SUPPORTO</p>
     </div>
     
@@ -173,7 +173,7 @@ export default async function handler(req, res) {
 <body>
   <div class="container">
     <div class="header">
-      <h1>FANTALITE</h1>
+      <h1>FANTAELITE SERIE A</h1>
       <p>LA FANTALEGA D'ÉLITE</p>
     </div>
     
