@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       .update({
         payment_status: 'completed',
         payment_intent_id: paymentIntentId,
-        paid_amount: amount,
+        paid_: ,
         paid_at: new Date().toISOString(),
       })
       .eq('id', registrationId)
@@ -118,7 +118,7 @@ export default async function handler(req, res) {
                       <tr>
                         <td style="padding: 5px 0; color: #666; font-size: 14px;">Importo:</td>
                         <td style="padding: 5px 0; color: #f0b429; font-size: 16px; font-weight: 700; text-align: right;">
-                          €${(amount / 100).toFixed(2)}
+                          €${Number(amount).toFixed(2)}
                         </td>
                       </tr>
                       <tr>
