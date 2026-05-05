@@ -215,6 +215,16 @@ const TicketIcon = ({ size = 20 }) => (
     <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="9" y1="12" x2="9.01" y2="12"/><line x1="15" y1="12" x2="15.01" y2="12"/>
   </svg>
 )
+const MailIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+  </svg>
+)
+const AlertCircleIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+)
 
 /* ─────────────────────────────────────────────
    NAVBAR
@@ -272,11 +282,6 @@ function Navbar({ settings, onNavigate, currentPage }) {
               onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
               Classifica
             </a>
-            <a href="#supporto" style={linkStyle(false)}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-              Supporto
-            </a>
           </>
         )}
 
@@ -288,6 +293,16 @@ function Navbar({ settings, onNavigate, currentPage }) {
           onMouseLeave={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--muted)'}
         >
           🏆 Montepremi
+        </button>
+
+        {/* Supporto link — sempre visibile */}
+        <button
+          onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }}
+          style={linkStyle(currentPage === 'supporto')}
+          onMouseEnter={e => e.currentTarget.style.color = currentPage === 'supporto' ? 'var(--gold)' : 'var(--white)'}
+          onMouseLeave={e => e.currentTarget.style.color = currentPage === 'supporto' ? 'var(--gold)' : 'var(--muted)'}
+        >
+          💬 Supporto
         </button>
 
         {settings?.instagram_url && (
@@ -781,7 +796,7 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
 ───────────────────────────────────────────── */
 function FormIscrizione({ tickets, settings }) {
   const [step, setStep] = useState('form') // 'form' | 'payment' | 'success' | 'error'
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', ticketId: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', leagueEmail: '', ticketId: '' })
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -796,7 +811,7 @@ function FormIscrizione({ tickets, settings }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.firstName || !form.lastName || !form.email || !form.ticketId) {
+    if (!form.firstName || !form.lastName || !form.email || !form.leagueEmail || !form.ticketId) {
       setErrorMsg('Compila tutti i campi e seleziona un ticket.')
       return
     }
@@ -826,6 +841,7 @@ function FormIscrizione({ tickets, settings }) {
           first_name: form.firstName,
           last_name: form.lastName,
           email: form.email,
+          league_email: form.leagueEmail,
           ticket_id: form.ticketId,
           payment_status: 'pending',
         })
@@ -936,6 +952,26 @@ function FormIscrizione({ tickets, settings }) {
         }}>
           {step === 'form' && (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Avviso residenza */}
+              <div style={{
+                padding: '0.875rem 1rem',
+                background: 'rgba(74,158,255,0.08)',
+                border: '1px solid rgba(74,158,255,0.25)',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                color: '#8ab4f8',
+                lineHeight: 1.6,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+              }}>
+                <AlertCircleIcon size={18} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '0.25rem', color: '#9cc5ff' }}>Partecipazione riservata ai residenti in Italia</strong>
+                  I premi sono assegnabili esclusivamente a partecipanti residenti sul territorio italiano. La partecipazione da parte di non residenti è consentita, ma non darà diritto a concorrere per i premi.
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Nome *</label>
@@ -950,11 +986,45 @@ function FormIscrizione({ tickets, settings }) {
                     onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
                 </div>
               </div>
+              
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Email *</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Email di contatto *</label>
                 <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="mario@email.com" required style={inputStyle}
                   onFocus={e => e.target.style.borderColor = 'var(--gold)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.3rem' }}>
+                  Riceverai conferma e aggiornamenti a questo indirizzo
+                </div>
+              </div>
+
+              {/* Campo Email LegheFC */}
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>
+                  <MailIcon size={14} /> Email LegheFC (per l'invito alla lega) *
+                </label>
+                <input 
+                  type="email" 
+                  name="leagueEmail" 
+                  value={form.leagueEmail} 
+                  onChange={handleChange} 
+                  placeholder="email.leghefc@example.com" 
+                  required 
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'var(--gold)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} 
+                />
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem 0.875rem',
+                  background: 'rgba(240,180,41,0.08)',
+                  border: '1px solid rgba(240,180,41,0.25)',
+                  borderRadius: '8px',
+                  fontSize: '0.72rem',
+                  color: 'rgba(240,180,41,0.85)',
+                  lineHeight: 1.5,
+                }}>
+                  <strong>⚠️ Attenzione:</strong> Questa email verrà utilizzata per l'invito alla lega sull'app <strong>LegheFC</strong>. Assicurati che sia corretta. In caso di errore, contattaci via email a <strong>fantaeliteseriea@gmail.com</strong> o tramite il form di supporto selezionando "Rettifica email LegheFC".
+                </div>
               </div>
 
               {errorMsg && (
@@ -1014,7 +1084,8 @@ function FormIscrizione({ tickets, settings }) {
               </h3>
               <p style={{ color: 'var(--muted)', lineHeight: 1.7, marginBottom: '1.5rem' }}>
                 Iscrizione completata con successo.<br />
-                Riceverai una conferma all'indirizzo <strong style={{ color: 'var(--white)' }}>{form.email}</strong>
+                Riceverai una conferma all'indirizzo <strong style={{ color: 'var(--white)' }}>{form.email}</strong><br />
+                L'invito alla lega LegheFC sarà inviato a <strong style={{ color: 'var(--white)' }}>{form.leagueEmail}</strong>
               </p>
               <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>
                 Segui <a href={settings?.instagram_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)' }}>il nostro Instagram</a> per gli aggiornamenti.
@@ -1042,7 +1113,7 @@ function FormIscrizione({ tickets, settings }) {
 /* ─────────────────────────────────────────────
    FOOTER
 ───────────────────────────────────────────── */
-function Footer({ settings }) {
+function Footer({ settings, onNavigate }) {
   return (
     <footer style={{
       borderTop: '1px solid var(--border)',
@@ -1056,16 +1127,43 @@ function Footer({ settings }) {
         FANTAELITE SERIE A
       </div>
       <div>© {new Date().getFullYear()} FantaElite — Stagione {settings?.season || '2025/2026'}</div>
-      {settings?.instagram_url && (
-        <div style={{ marginTop: '0.75rem' }}>
+      <div style={{ marginTop: '1rem', display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        {settings?.instagram_url && (
           <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
             style={{ color: 'var(--muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
             <InstagramIcon size={14} /> Instagram
           </a>
-        </div>
-      )}
+        )}
+        <button
+          onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }}
+          style={{
+            color: 'var(--muted)',
+            textDecoration: 'none',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            transition: 'color 0.2s',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.8rem',
+            padding: 0,
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+        >
+          💬 Supporto
+        </button>
+        <a href="mailto:fantaeliteseriea@gmail.com"
+          style={{ color: 'var(--muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+          <MailIcon size={14} /> Email
+        </a>
+      </div>
     </footer>
   )
 }
@@ -1078,7 +1176,7 @@ export default function App() {
   const [tickets, setTickets]     = useState([])
   const [documents, setDocuments] = useState([])
   const [loading, setLoading]     = useState(true)
-  const [page, setPage]           = useState('home')   // 'home' | 'montepremi'
+  const [page, setPage]           = useState('home')   // 'home' | 'montepremi' | 'supporto'
 
   useEffect(() => {
     async function loadData() {
@@ -1140,6 +1238,18 @@ export default function App() {
     )
   }
 
+  /* ── pagina supporto ── */
+  if (page === 'supporto') {
+    return (
+      <>
+        <GlobalStyles />
+        <Navbar settings={settings} onNavigate={setPage} currentPage={page} />
+        <FormSupport onBack={() => setPage('home')} settings={settings} />
+        <Footer settings={settings} onNavigate={setPage} />
+      </>
+    )
+  }
+
   /* ── pagina principale ── */
   return (
     <>
@@ -1150,9 +1260,8 @@ export default function App() {
         <Documenti documents={documents} />
         <InstagramBanner settings={settings} />
         <FormIscrizione tickets={tickets} settings={settings} />
-        <FormSupport settings={settings} />
       </main>
-      <Footer settings={settings} />
+      <Footer settings={settings} onNavigate={setPage} />
     </>
   )
 }
