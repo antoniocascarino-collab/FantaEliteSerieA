@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       .update({
         payment_status: 'completed',
         payment_intent_id: paymentIntentId,
-        paid_: ,
+        paid_amount: amount,
         paid_at: new Date().toISOString(),
       })
       .eq('id', registrationId)
