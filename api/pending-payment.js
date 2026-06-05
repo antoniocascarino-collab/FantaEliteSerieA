@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 
 // ─── Dati bonifico bancario ───────────────────────────────────────────────────
 const BANCA = {
-  beneficiario: 'FantaElite Serie A',
+  beneficiario: 'Antonio Cascarino',
   iban: process.env.IBAN_BONIFICO || 'IT00 X000 0000 0000 0000 0000 000',
   banca: process.env.BANCA_NOME || 'Banca Esempio',
 }
@@ -25,7 +25,7 @@ const BANCA = {
 function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, registrationId }) {
   const causale = `Quota ticket FantaLega ${email}`
   return {
-    subject: '⏳ Iscrizione FantaElite — Completa il pagamento PayPal',
+    subject: '⏳ Iscrizione FantaElite Serie A — Completa il pagamento PayPal',
     html: `<!DOCTYPE html>
 <html lang="it">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -119,7 +119,7 @@ function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, regi
 function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, registrationId }) {
   const causale = `Quota ticket FantaLega ${email}`
   return {
-    subject: '⏳ Iscrizione FantaElite — Coordinate bancarie per il bonifico',
+    subject: '⏳ Iscrizione FantaElite Serie A — Coordinate bancarie per il bonifico',
     html: `<!DOCTYPE html>
 <html lang="it">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
