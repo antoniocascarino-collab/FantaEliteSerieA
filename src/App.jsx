@@ -236,7 +236,7 @@ function Documenti({ documents }) {
               <FileIcon size={20} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.label}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>PDF · Scarica</div>
             </div>
           </a>
