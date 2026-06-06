@@ -220,28 +220,61 @@ function Hero({ settings }) {
 /* ─────────────────────────────────────────────
    DOCUMENTI
 ───────────────────────────────────────────── */
+const DownloadIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+)
+
+function DocCard({ doc }) {
+  const typeLabels = {
+    regolamento: { icon: '📋', color: '#4a9eff' },
+    montepremi:  { icon: '🏆', color: 'var(--gold)' },
+    classifica:  { icon: '📊', color: '#6ee7b7' },
+  }
+  const meta = typeLabels[doc.type] || { icon: '📄', color: 'var(--white)' }
+  return (
+    <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
+      style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', textDecoration: 'none', transition: 'border-color 0.2s, transform 0.2s, background 0.2s', cursor: 'pointer' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = meta.color; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.background = 'rgba(17,18,32,0.9)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = 'var(--card)' }}>
+      <div style={{ width: 48, height: 48, background: `${meta.color}18`, border: `1px solid ${meta.color}30`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>{meta.icon}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--white)', marginBottom: '0.2rem' }}>{doc.label}</div>
+        {doc.week && <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Giornata {doc.week}</div>}
+        {doc.season && !doc.week && <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Stagione {doc.season}</div>}
+      </div>
+      <div style={{ color: meta.color, flexShrink: 0 }}><DownloadIcon size={18} /></div>
+    </a>
+  )
+}
+
 function Documenti({ documents }) {
   if (!documents?.length) return null
+  const regolamento = documents.filter(d => d.type === 'regolamento')
+  const montepremi  = documents.filter(d => d.type === 'montepremi')
+  const classifiche = documents.filter(d => d.type === 'classifica').sort((a, b) => (b.week || 0) - (a.week || 0))
   return (
     <section id="documenti" style={{ padding: '6rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-      <SectionLabel>Regolamento</SectionLabel>
-      <SectionTitle>Documenti<br />Ufficiali</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
-        {documents.map(doc => (
-          <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem 1.5rem', background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'var(--white)', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'rgba(240,180,41,0.05)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'var(--card)' }}>
-            <div style={{ width: 40, height: 40, background: 'rgba(240,180,41,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <FileIcon size={20} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.label}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>PDF · Scarica</div>
-            </div>
-          </a>
-        ))}
+      <SectionLabel>Documenti Ufficiali</SectionLabel>
+      <SectionTitle>Tutto quello che<br />devi sapere</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        {[...regolamento, ...montepremi].map(doc => <DocCard key={doc.id} doc={doc} />)}
       </div>
+      {classifiche.length > 0 && (
+        <>
+          <div id="classifica" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '3rem 0 1.5rem' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span style={{ color: 'var(--muted)', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Classifiche Settimanali</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
+            {classifiche.map(doc => <DocCard key={doc.id} doc={doc} />)}
+          </div>
+        </>
+      )}
     </section>
   )
 }
