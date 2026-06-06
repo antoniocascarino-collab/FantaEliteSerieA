@@ -59,66 +59,31 @@ const GlobalStyles = () => (
       100% { background-position:  200% center; }
     }
     @keyframes rotateSlow {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50%       { transform: translateY(-10px); }
-    }
-    @keyframes scanline {
-      0%   { transform: translateY(-100%); }
-      100% { transform: translateY(100vh); }
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
     }
 
     .fade-up   { animation: fadeUp 0.7s ease both; }
     .fade-up-1 { animation: fadeUp 0.7s 0.1s ease both; }
     .fade-up-2 { animation: fadeUp 0.7s 0.2s ease both; }
     .fade-up-3 { animation: fadeUp 0.7s 0.3s ease both; }
-    .fade-up-4 { animation: fadeUp 0.7s 0.4s ease both; }
-
-    input, select, textarea { font-family: var(--font-body); }
   `}</style>
 )
 
 /* ─────────────────────────────────────────────
-   ICONE SVG
+   ICONE SVG INLINE
 ───────────────────────────────────────────── */
+const TicketIcon  = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+const CheckIcon   = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+const FileIcon    = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+const MailIcon    = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+const AlertCircleIcon = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
 const InstagramIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
   </svg>
 )
-const DownloadIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-)
-const TrophyIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="8 21 12 21 16 21"/><line x1="12" y1="17" x2="12" y2="21"/><path d="M7 4H17l-1 7a5 5 0 0 1-10 0L5 4z"/><path d="M5 9H3a2 2 0 0 0 2 2"/><path d="M19 9h2a2 2 0 0 1-2 2"/>
-  </svg>
-)
-const CheckIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
-)
-const TicketIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="9" y1="12" x2="9.01" y2="12"/><line x1="15" y1="12" x2="15.01" y2="12"/>
-  </svg>
-)
-const MailIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-  </svg>
-)
-const AlertCircleIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-  </svg>
-)
+const PhoneIcon = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.37 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.49 5.49l.96-.96a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 21 16v.92z"/></svg>
 
 /* ─────────────────────────────────────────────
    COMING SOON
@@ -233,88 +198,62 @@ function Hero({ settings }) {
         <span style={{ display: 'block', color: 'var(--white)' }}>SERIE A</span>
       </h1>
       <p className="fade-up-2" style={{ maxWidth: '520px', fontSize: '1.1rem', lineHeight: 1.7, color: 'var(--muted)', fontWeight: 300, marginBottom: '2.5rem' }}>
-        La fantalega ufficiale più competitiva d'Italia. Premi esclusivi, regolamento professionale, emozioni reali.
+        La fantalega ufficiale più competitiva d'Italia.
+        Conosci ogni giocatore. Domina ogni giornata.
       </p>
       <div className="fade-up-3" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <a href="#iscrizione" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 2rem', background: 'var(--gold)', color: 'var(--black)', borderRadius: '100px', textDecoration: 'none', fontWeight: 700, fontSize: '1rem', letterSpacing: '0.05em', transition: 'transform 0.2s, opacity 0.2s', animation: 'float 4s ease-in-out infinite' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)' }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
-          <TicketIcon size={18} /> Acquista il Ticket
+        <a href="#iscrizione" style={{ padding: '0.875rem 2rem', background: 'var(--gold)', color: 'var(--black)', borderRadius: '100px', textDecoration: 'none', fontWeight: 700, fontSize: '1rem', letterSpacing: '0.05em', transition: 'all 0.2s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold2)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'var(--gold)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+          Acquista il Ticket →
         </a>
-        <a href="#documenti" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 2rem', border: '1px solid var(--border)', color: 'var(--white)', borderRadius: '100px', textDecoration: 'none', fontWeight: 400, fontSize: '1rem', letterSpacing: '0.05em', transition: 'border-color 0.2s, background 0.2s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(240,180,41,0.4)' }}
+        <a href="#documenti" style={{ padding: '0.875rem 2rem', border: '1px solid var(--border)', color: 'var(--white)', borderRadius: '100px', textDecoration: 'none', fontSize: '1rem', letterSpacing: '0.05em', transition: 'all 0.2s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,180,41,0.08)'; e.currentTarget.style.borderColor = 'var(--gold)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)' }}>
-          Scopri il Regolamento
+          Leggi il Regolamento
         </a>
-      </div>
-      <div className="fade-up-4" style={{ position: 'absolute', bottom: '2.5rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--muted)', fontSize: '0.7rem', letterSpacing: '0.2em', animation: 'pulse 2s ease-in-out infinite' }}>
-        <div style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, var(--gold), transparent)' }} />
       </div>
     </section>
   )
 }
 
 /* ─────────────────────────────────────────────
-   SEZIONE DOCUMENTI (PDF)
+   DOCUMENTI
 ───────────────────────────────────────────── */
-function DocCard({ doc }) {
-  const typeLabels = {
-    regolamento: { icon: '📋', color: '#4a9eff' },
-    montepremi:  { icon: '🏆', color: 'var(--gold)' },
-    classifica:  { icon: '📊', color: '#6ee7b7' },
-  }
-  const meta = typeLabels[doc.type] || { icon: '📄', color: 'var(--white)' }
-  return (
-    <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
-      style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', textDecoration: 'none', transition: 'border-color 0.2s, transform 0.2s, background 0.2s', cursor: 'pointer' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = meta.color; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.background = 'rgba(17,18,32,0.9)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = 'var(--card)' }}>
-      <div style={{ width: 48, height: 48, background: `${meta.color}18`, border: `1px solid ${meta.color}30`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 }}>{meta.icon}</div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--white)', marginBottom: '0.2rem' }}>{doc.label}</div>
-        {doc.week && <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Giornata {doc.week}</div>}
-        {doc.season && !doc.week && <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Stagione {doc.season}</div>}
-      </div>
-      <div style={{ color: meta.color, flexShrink: 0 }}><DownloadIcon size={18} /></div>
-    </a>
-  )
-}
-
 function Documenti({ documents }) {
-  const regolamento = documents.filter(d => d.type === 'regolamento')
-  const montepremi  = documents.filter(d => d.type === 'montepremi')
-  const classifiche = documents.filter(d => d.type === 'classifica').sort((a, b) => (b.week || 0) - (a.week || 0))
+  if (!documents?.length) return null
   return (
     <section id="documenti" style={{ padding: '6rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-      <SectionLabel>Documenti Ufficiali</SectionLabel>
-      <SectionTitle>Tutto quello che<br />devi sapere</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        {[...regolamento, ...montepremi].map(doc => <DocCard key={doc.id} doc={doc} />)}
+      <SectionLabel>Regolamento</SectionLabel>
+      <SectionTitle>Documenti<br />Ufficiali</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+        {documents.map(doc => (
+          <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem 1.5rem', background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', textDecoration: 'none', color: 'var(--white)', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'rgba(240,180,41,0.05)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'var(--card)' }}>
+            <div style={{ width: 40, height: 40, background: 'rgba(240,180,41,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <FileIcon size={20} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>PDF · Scarica</div>
+            </div>
+          </a>
+        ))}
       </div>
-      {classifiche.length > 0 && (
-        <>
-          <div id="classifica" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '3rem 0 1.5rem' }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-            <span style={{ color: 'var(--muted)', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Classifiche Settimanali</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
-            {classifiche.map(doc => <DocCard key={doc.id} doc={doc} />)}
-          </div>
-        </>
-      )}
     </section>
   )
 }
 
 /* ─────────────────────────────────────────────
-   SEZIONE INSTAGRAM
+   INSTAGRAM BANNER
 ───────────────────────────────────────────── */
 function InstagramBanner({ settings }) {
   if (!settings?.instagram_url) return null
   return (
-    <section style={{ padding: '3rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-      <div style={{ background: 'linear-gradient(135deg, rgba(240,180,41,0.08) 0%, rgba(17,18,32,0.8) 100%)', border: '1px solid var(--border)', borderRadius: '16px', padding: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.5rem' }}>
+    <section style={{ padding: '0 2rem 5rem', maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.5rem', padding: '1.75rem 2rem', background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           <div style={{ width: 56, height: 56, background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <InstagramIcon size={28} />
@@ -336,21 +275,113 @@ function InstagramBanner({ settings }) {
 }
 
 /* ─────────────────────────────────────────────
-   HELPER COMPONENTI
+   PENDING PAYMENT FORM (PayPal / Bonifico)
 ───────────────────────────────────────────── */
-function SectionLabel({ children }) {
+function PendingPaymentForm({ method, selectedTicket, regId, onSuccess, onError, onBack }) {
+  const [loading, setLoading] = useState(false)
+  const isPaypal = method === 'paypal'
+
+  const handleConfirm = async () => {
+    setLoading(true)
+    try {
+      const { error } = await supabase.from('registrations')
+        .update({ payment_status: isPaypal ? 'pending_paypal' : 'pending_bonifico' })
+        .eq('id', regId)
+      if (error) throw error
+      const res = await fetch('/api/send-pending-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registrationId: regId, method }),
+      })
+      if (!res.ok) throw new Error('Email error')
+      onSuccess(method)
+    } catch (err) {
+      console.error(err)
+      onError('Errore nell\'invio. Riprova.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div style={{ fontSize: '0.72rem', letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-      <span style={{ width: 24, height: 1, background: 'var(--gold)', display: 'inline-block' }} />
-      {children}
+    <div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.4rem' }}>
+          {isPaypal ? '🅿️ Pagamento PayPal' : '🏦 Pagamento Bonifico'}
+        </div>
+        <div style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.6 }}>
+          {isPaypal
+            ? 'Riceverai via email le istruzioni per completare il pagamento PayPal. La tua iscrizione verrà confermata dopo la verifica del pagamento.'
+            : 'Riceverai via email le coordinate bancarie. La tua iscrizione verrà confermata dopo la ricezione del bonifico (1-2 giorni lavorativi).'}
+        </div>
+      </div>
+      <div style={{ padding: '1rem', background: 'rgba(240,180,41,0.06)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: '10px', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>Importo da pagare</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--gold)', lineHeight: 1 }}>€{Number(selectedTicket.price).toFixed(0)}</div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.3rem' }}>{selectedTicket.name}</div>
+      </div>
+      <button onClick={handleConfirm} disabled={loading}
+        style={{ width: '100%', padding: '1rem', background: loading ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        {loading ? <span>Invio in corso...</span> : <>{isPaypal ? '🅿️' : '🏦'} Conferma e ricevi istruzioni</>}
+      </button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.875rem', width: '100%', textAlign: 'center', marginTop: '0.25rem' }}>
+        ← Scegli un altro metodo
+      </button>
     </div>
   )
 }
-function SectionTitle({ children, style = {} }) {
+
+/* ─────────────────────────────────────────────
+   SELEZIONE METODO DI PAGAMENTO
+───────────────────────────────────────────── */
+function PaymentMethodSelector({ selectedTicket, regId, form, onSuccess, onError, onBack }) {
+  const [method, setMethod] = useState(null)
+
+  const methods = [
+    { id: 'stripe',   icon: '💳', label: 'Carta di credito / debito', sub: 'Pagamento immediato e sicuro via Stripe',      color: '#635bff' },
+    { id: 'paypal',   icon: '🅿️', label: 'PayPal',                    sub: 'Riceverai le istruzioni via email',             color: '#0070ba' },
+    { id: 'bonifico', icon: '🏦', label: 'Bonifico Bancario',          sub: 'Riceverai le coordinate bancarie via email',   color: '#28a745' },
+  ]
+
+  if (method === 'stripe') {
+    return (
+      <Elements stripe={stripePromise}>
+        <StripeCardForm selectedTicket={selectedTicket} regId={regId} form={form} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
+      </Elements>
+    )
+  }
+
+  if (method === 'paypal' || method === 'bonifico') {
+    return (
+      <PendingPaymentForm method={method} selectedTicket={selectedTicket} regId={regId} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
+    )
+  }
+
   return (
-    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.05, letterSpacing: '0.03em', marginBottom: '2.5rem', ...style }}>
-      {children}
-    </h2>
+    <div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>Scegli il metodo di pagamento</div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Ticket: {selectedTicket.name} · €{Number(selectedTicket.price).toFixed(0)}</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        {methods.map(m => (
+          <button key={m.id} onClick={() => setMethod(m.id)}
+            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', fontFamily: 'var(--font-body)' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = `${m.color}66`; e.currentTarget.style.background = `${m.color}11` }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}>
+            <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{m.icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{m.label}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{m.sub}</div>
+            </div>
+            <span style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>›</span>
+          </button>
+        ))}
+      </div>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.875rem', width: '100%', textAlign: 'center' }}>
+        ← Torna indietro
+      </button>
+    </div>
   )
 }
 
@@ -407,156 +438,21 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
   return (
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Stai acquistando</div>
-        <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{selectedTicket?.name}</div>
-        <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-display)', fontSize: '2rem' }}>€{Number(selectedTicket?.price).toFixed(2)}</div>
+        <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>💳 Pagamento con carta</div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Importo: €{Number(selectedTicket.price).toFixed(0)} · {selectedTicket.name}</div>
       </div>
-      <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'rgba(110,231,183,0.1)', border: '1px solid rgba(110,231,183,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#6ee7b7' }}>
-        ✓ Registrazione salvata — inserisci i dati della carta
-      </div>
-      <div style={{ padding: '0.875rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', marginBottom: '1rem' }}>
+      <div style={{ padding: '0.875rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', marginBottom: '1rem' }}>
         <CardElement options={cardStyle} />
       </div>
       {cardError && (
         <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080', marginBottom: '1rem' }}>{cardError}</div>
       )}
       <button onClick={handlePay} disabled={loading || !stripe}
-        style={{ width: '100%', padding: '1rem', background: loading ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-        {loading ? <span style={{ animation: 'pulse 1s infinite' }}>Elaborazione...</span> : <>🔒 Paga €{Number(selectedTicket?.price).toFixed(2)}</>}
-      </button>
-      <div style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--muted)', marginTop: '0.75rem' }}>Pagamento sicuro tramite Stripe · I tuoi dati sono protetti</div>
-      <button onClick={onBack} style={{ marginTop: '0.75rem', background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.875rem', width: '100%', textAlign: 'center' }}>
-        ← Scegli un altro metodo
-      </button>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   PAYPAL / BONIFICO — form conferma pending
-───────────────────────────────────────────── */
-function PendingPaymentForm({ method, selectedTicket, regId, onSuccess, onBack }) {
-  const [loading, setLoading] = useState(false)
-  const [err, setErr] = useState('')
-  const isPaypal = method === 'paypal'
-
-  const handleConfirm = async () => {
-    setLoading(true)
-    setErr('')
-    try {
-      const res = await fetch('/api/pending-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          registrationId: regId,
-          paymentMethod: method,
-          amount: Number(selectedTicket.price),
-          ticketName: selectedTicket.name,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Errore')
-      onSuccess(method)
-    } catch (e) {
-      setErr(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Stai acquistando</div>
-        <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{selectedTicket?.name}</div>
-        <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-display)', fontSize: '2rem' }}>€{Number(selectedTicket?.price).toFixed(2)}</div>
-      </div>
-      <div style={{ padding: '1rem 1.25rem', background: isPaypal ? 'rgba(0,112,186,0.1)' : 'rgba(40,167,69,0.1)', border: `1px solid ${isPaypal ? 'rgba(0,112,186,0.35)' : 'rgba(40,167,69,0.35)'}`, borderRadius: '10px', marginBottom: '1.25rem' }}>
-        <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.5rem', color: isPaypal ? '#5bc4f5' : '#6ee7b7' }}>
-          {isPaypal ? '🅿️ Pagamento PayPal' : '🏦 Bonifico Bancario'}
-        </div>
-        {isPaypal ? (
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.8 }}>
-            <li>Cliccando conferma, la tua iscrizione verrà salvata</li>
-            <li>Riceverai una <strong style={{ color: 'var(--white)' }}>email con le istruzioni PayPal</strong> per il trasferimento</li>
-            <li>La conferma iscrizione arriverà entro <strong style={{ color: 'var(--white)' }}>24-48 ore</strong> dalla ricezione del pagamento</li>
-          </ul>
-        ) : (
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--muted)', fontSize: '0.85rem', lineHeight: 1.8 }}>
-            <li>Cliccando conferma, la tua iscrizione verrà salvata</li>
-            <li>Riceverai una <strong style={{ color: 'var(--white)' }}>email con IBAN, beneficiario e causale</strong></li>
-            <li>La conferma iscrizione arriverà entro <strong style={{ color: 'var(--white)' }}>24-48 ore</strong> dalla ricezione del bonifico</li>
-          </ul>
-        )}
-      </div>
-      {err && (
-        <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080', marginBottom: '1rem' }}>{err}</div>
-      )}
-      <button onClick={handleConfirm} disabled={loading}
         style={{ width: '100%', padding: '1rem', background: loading ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        {loading ? <span>Invio in corso...</span> : <>{isPaypal ? '🅿️' : '🏦'} Conferma e ricevi istruzioni</>}
+        {loading ? <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>Elaborazione...</span> : <>🔒 Paga €{Number(selectedTicket.price).toFixed(0)}</>}
       </button>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.875rem', width: '100%', textAlign: 'center', marginTop: '0.25rem' }}>
         ← Scegli un altro metodo
-      </button>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   SELEZIONE METODO DI PAGAMENTO
-───────────────────────────────────────────── */
-function PaymentMethodSelector({ selectedTicket, regId, form, onSuccess, onError, onBack }) {
-  const [method, setMethod] = useState(null)
-
-  const methods = [
-    { id: 'stripe',   icon: '💳', label: 'Carta di credito / debito', sub: 'Pagamento immediato e sicuro via Stripe',      color: '#635bff' },
-    { id: 'paypal',   icon: '🅿️', label: 'PayPal',                    sub: 'Riceverai le istruzioni via email',             color: '#0070ba' },
-    { id: 'bonifico', icon: '🏦', label: 'Bonifico Bancario',          sub: 'Riceverai le coordinate bancarie via email',   color: '#28a745' },
-  ]
-
-  if (method === 'stripe') {
-    return (
-      <Elements stripe={stripePromise}>
-        <StripeCardForm selectedTicket={selectedTicket} regId={regId} form={form} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
-      </Elements>
-    )
-  }
-
-  if (method === 'paypal' || method === 'bonifico') {
-    return (
-      <PendingPaymentForm method={method} selectedTicket={selectedTicket} regId={regId} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
-    )
-  }
-
-  return (
-    <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Stai acquistando</div>
-        <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{selectedTicket?.name}</div>
-        <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-display)', fontSize: '2rem' }}>€{Number(selectedTicket?.price).toFixed(2)}</div>
-      </div>
-      <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'rgba(110,231,183,0.1)', border: '1px solid rgba(110,231,183,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#6ee7b7' }}>
-        ✓ Registrazione salvata — scegli come pagare
-      </div>
-      <div style={{ fontSize: '0.8rem', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '0.75rem', textTransform: 'uppercase' }}>Metodo di pagamento</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
-        {methods.map(m => (
-          <button key={m.id} onClick={() => setMethod(m.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', background: 'var(--card)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: 'var(--white)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', fontFamily: 'var(--font-body)' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = m.color; e.currentTarget.style.background = `${m.color}18` }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'var(--card)' }}>
-            <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>{m.icon}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{m.label}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{m.sub}</div>
-            </div>
-            <span style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>›</span>
-          </button>
-        ))}
-      </div>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.875rem', width: '100%', textAlign: 'center' }}>
-        ← Torna indietro
       </button>
     </div>
   )
@@ -568,7 +464,14 @@ function PaymentMethodSelector({ selectedTicket, regId, form, onSuccess, onError
 function FormIscrizione({ tickets, settings }) {
   const [step, setStep] = useState('form') // 'form' | 'payment' | 'success' | 'error'
   const [paymentMethod, setPaymentMethod] = useState(null)
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', leagueEmail: '', ticketId: '' })
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    leagueEmail: '',
+    phone: '',
+    ticketId: '',
+  })
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -579,8 +482,14 @@ function FormIscrizione({ tickets, settings }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.firstName || !form.lastName || !form.email || !form.leagueEmail || !form.ticketId) {
+    if (!form.firstName || !form.lastName || !form.email || !form.leagueEmail || !form.phone || !form.ticketId) {
       setErrorMsg('Compila tutti i campi e seleziona un ticket.')
+      return
+    }
+    // Validazione telefono: almeno 8 cifre
+    const phoneDigits = form.phone.replace(/\D/g, '')
+    if (phoneDigits.length < 8) {
+      setErrorMsg('Inserisci un numero di cellulare valido.')
       return
     }
     setLoading(true)
@@ -597,9 +506,14 @@ function FormIscrizione({ tickets, settings }) {
       }
       const newId = crypto.randomUUID()
       const { error } = await supabase.from('registrations').insert({
-        id: newId, first_name: form.firstName, last_name: form.lastName,
-        email: form.email, league_email: form.leagueEmail,
-        ticket_id: form.ticketId, payment_status: 'pending',
+        id: newId,
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.email,
+        league_email: form.leagueEmail,
+        phone: form.phone,
+        ticket_id: form.ticketId,
+        payment_status: 'pending',
       })
       if (error) throw error
       setRegId(newId)
@@ -662,6 +576,7 @@ function FormIscrizione({ tickets, settings }) {
 
           {step === 'form' && (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Banner residenti Italia */}
               <div style={{ padding: '0.875rem 1rem', background: 'rgba(74,158,255,0.08)', border: '1px solid rgba(74,158,255,0.25)', borderRadius: '8px', fontSize: '0.8rem', color: '#8ab4f8', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                 <AlertCircleIcon size={18} style={{ flexShrink: 0, marginTop: 2 }} />
                 <div>
@@ -669,6 +584,8 @@ function FormIscrizione({ tickets, settings }) {
                   I premi sono assegnabili esclusivamente a partecipanti residenti sul territorio italiano.
                 </div>
               </div>
+
+              {/* Nome / Cognome */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Nome *</label>
@@ -681,20 +598,45 @@ function FormIscrizione({ tickets, settings }) {
                     onFocus={e => e.target.style.borderColor = 'var(--gold)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
                 </div>
               </div>
+
+              {/* Email contatto */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Email di contatto *</label>
                 <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="mario@esempio.it" required style={inputStyle}
                   onFocus={e => e.target.style.borderColor = 'var(--gold)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
               </div>
+
+              {/* Email LegheFC */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Email account LegheFC *</label>
                 <input name="leagueEmail" type="email" value={form.leagueEmail} onChange={handleChange} placeholder="mario@leghefc.it" required style={inputStyle}
                   onFocus={e => e.target.style.borderColor = 'var(--gold)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
                 <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>L'invito alla lega verrà inviato a questo indirizzo</div>
               </div>
+
+              {/* ── NUOVO: Cellulare ── */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <PhoneIcon size={13} /> Cellulare *
+                </label>
+                <input
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="+39 333 1234567"
+                  required
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'var(--gold)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>Usato solo per comunicazioni urgenti legate alla lega</div>
+              </div>
+
               {errorMsg && (
                 <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080' }}>{errorMsg}</div>
               )}
+
               <button type="submit" disabled={loading || !selectedTicket}
                 style={{ marginTop: '0.5rem', padding: '1rem', background: loading || !selectedTicket ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', letterSpacing: '0.05em', cursor: loading || !selectedTicket ? 'not-allowed' : 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontFamily: 'var(--font-body)' }}>
                 {loading ? <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>Salvataggio...</span> : <><TicketIcon size={18} /> Procedi al Pagamento {selectedTicket ? `— €${Number(selectedTicket.price).toFixed(0)}` : ''}</>}
@@ -767,6 +709,25 @@ function FormIscrizione({ tickets, settings }) {
 }
 
 /* ─────────────────────────────────────────────
+   HELPER COMPONENTI
+───────────────────────────────────────────── */
+function SectionLabel({ children }) {
+  return (
+    <div style={{ fontSize: '0.72rem', letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <span style={{ width: 24, height: 1, background: 'var(--gold)', display: 'inline-block' }} />
+      {children}
+    </div>
+  )
+}
+function SectionTitle({ children, style = {} }) {
+  return (
+    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.05, letterSpacing: '0.03em', marginBottom: '2.5rem', ...style }}>
+      {children}
+    </h2>
+  )
+}
+
+/* ─────────────────────────────────────────────
    FOOTER
 ───────────────────────────────────────────── */
 function Footer({ settings, onNavigate }) {
@@ -775,13 +736,13 @@ function Footer({ settings, onNavigate }) {
       <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', letterSpacing: '0.1em', color: 'var(--gold)', marginBottom: '0.75rem' }}>FANTAELITE SERIE A</div>
       <div>© {new Date().getFullYear()} FantaElite — Stagione {settings?.season || '2025/2026'}</div>
       <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-        <button onClick={() => onNavigate('montepremi')} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-body)', letterSpacing: '0.05em', transition: 'color 0.2s' }}
+        <button onClick={() => onNavigate('montepremi')} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-          🏆 Montepremi
+          Montepremi
         </button>
-        <button onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-body)', letterSpacing: '0.05em', transition: 'color 0.2s' }}
+        <button onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-          💬 Supporto
+          Supporto
         </button>
         {settings?.instagram_url && (
           <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
