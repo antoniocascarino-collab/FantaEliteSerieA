@@ -15,7 +15,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
 /* ─────────────────────────────────────────────
    STILI GLOBALI
 ───────────────────────────────────────────── */
-GlobalStyles = () => (
+const GlobalStyles = () => (
   <style>{`
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
