@@ -35,9 +35,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { paymentIntentId, registrationId } = req.body
+  const { paymentIntentId, registrationId, ticketId, firstName, lastName, email, leagueEmail, phone } = req.body
 
-  if (!paymentIntentId || !registrationId) {
+  if (!paymentIntentId || !registrationId || !ticketId || !firstName || !lastName || !email || !leagueEmail || !phone) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
@@ -49,46 +49,59 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Payment not successful' })
     }
 
-    // 2. Verifica che il pagamento sia stato creato per QUESTA registrazione
+    // 2. Verifica che il pagamento sia stato creato per QUESTA registrazione e QUESTO ticket
     if (paymentIntent.metadata?.registrationId !== registrationId) {
       return res.status(400).json({ error: 'Payment/registration mismatch' })
     }
+    if (paymentIntent.metadata?.ticketId !== ticketId) {
+      return res.status(400).json({ error: 'Payment/ticket mismatch' })
+    }
 
-    // 3. Verifica che questo pagamento non sia già stato usato per un'altra registrazione
-    const { data: alreadyUsed } = await supabase
+    // 3. Idempotenza: se questa registrazione esiste già (doppio click/retry), non duplicare
+    const { data: existing } = await supabase
       .from('registrations')
-      .select('id')
-      .eq('payment_intent_id', paymentIntentId)
-      .neq('id', registrationId)
+      .select('id, email, league_email')
+      .eq('id', registrationId)
       .maybeSingle()
 
-    if (alreadyUsed) {
-      return res.status(400).json({ error: 'Payment already used for another registration' })
+    if (existing) {
+      return res.status(200).json({
+        success: true,
+        registration: { id: existing.id, email: existing.email, league_email: existing.league_email },
+      })
     }
 
     // 4. Importo reale verificato da Stripe — non quello inviato dal client
     const realAmount = paymentIntent.amount / 100
 
-    // 5. Aggiorna il database, solo se la registrazione era ancora 'pending'
-    const { data: registration, error: updateError } = await supabase
+    // 5. Crea la registrazione SOLO ora che il pagamento è confermato
+    const { data: registration, error: insertError } = await supabase
       .from('registrations')
-      .update({
+      .insert({
+        id: registrationId,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        league_email: leagueEmail,
+        phone,
+        ticket_id: ticketId,
         payment_status: 'completed',
         payment_intent_id: paymentIntentId,
         paid_amount: realAmount,
         paid_at: new Date().toISOString(),
       })
-      .eq('id', registrationId)
-      .eq('payment_status', 'pending')
       .select('*, tickets(*)')
       .single()
 
-    if (updateError || !registration) {
-      console.error('Errore aggiornamento database:', updateError)
-      return res.status(409).json({ error: 'Registrazione non trovata o già confermata' })
+    if (insertError) {
+      console.error('Errore inserimento database:', insertError)
+      if (insertError.code === '23505') {
+        return res.status(409).json({ error: 'Questa email ha già acquistato questo ticket.' })
+      }
+      return res.status(500).json({ error: 'Database insert failed' })
     }
 
-    // 3. Invia email di benvenuto via Gmail
+    // 6. Invia email di benvenuto via Gmail
     try {
       const mailOptions = {
         from: `"FantaElite Serie A" <${process.env.GMAIL_USER}>`,
@@ -250,10 +263,8 @@ export default async function handler(req, res) {
 
     } catch (emailError) {
       console.error('⚠️ Errore invio email (ma pagamento OK):', emailError)
-      // Non blocchiamo la risposta - il pagamento è comunque completato
     }
 
-    // 4. Risposta di successo
     return res.status(200).json({ 
       success: true,
       registration: {
