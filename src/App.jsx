@@ -15,7 +15,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
 /* ─────────────────────────────────────────────
    STILI GLOBALI
 ───────────────────────────────────────────── */
-const GlobalStyles = () => (
+GlobalStyles = () => (
   <style>{`
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -529,9 +529,7 @@ function FormIscrizione({ tickets, settings }) {
     setErrorMsg('')
     try {
       const { data: existing } = await supabase
-        .from('registrations').select('id')
-        .eq('email', form.email).eq('ticket_id', form.ticketId).eq('payment_status', 'completed')
-        .maybeSingle()
+  .rpc('check_existing_registration', { p_email: form.email, p_ticket_id: form.ticketId })
       if (existing) {
         setErrorMsg('Questa email ha già acquistato questo ticket. Usa un indirizzo email diverso.')
         setLoading(false)
