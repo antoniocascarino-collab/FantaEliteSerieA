@@ -35,36 +35,57 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { paymentIntentId, registrationId, amount } = req.body
+  const { paymentIntentId, registrationId } = req.body
 
-  if (!paymentIntentId || !registrationId || !amount) {
+  if (!paymentIntentId || !registrationId) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
   try {
-    // 1. Verifica il PaymentIntent con Stripe
+    // 1. Verifica il PaymentIntent con Stripe (fonte di verità per l'importo)
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: 'Payment not successful' })
     }
 
-    // 2. Aggiorna il database Supabase
+    // 2. Verifica che il pagamento sia stato creato per QUESTA registrazione
+    if (paymentIntent.metadata?.registrationId !== registrationId) {
+      return res.status(400).json({ error: 'Payment/registration mismatch' })
+    }
+
+    // 3. Verifica che questo pagamento non sia già stato usato per un'altra registrazione
+    const { data: alreadyUsed } = await supabase
+      .from('registrations')
+      .select('id')
+      .eq('payment_intent_id', paymentIntentId)
+      .neq('id', registrationId)
+      .maybeSingle()
+
+    if (alreadyUsed) {
+      return res.status(400).json({ error: 'Payment already used for another registration' })
+    }
+
+    // 4. Importo reale verificato da Stripe — non quello inviato dal client
+    const realAmount = paymentIntent.amount / 100
+
+    // 5. Aggiorna il database, solo se la registrazione era ancora 'pending'
     const { data: registration, error: updateError } = await supabase
       .from('registrations')
       .update({
         payment_status: 'completed',
         payment_intent_id: paymentIntentId,
-        paid_amount: amount,
+        paid_amount: realAmount,
         paid_at: new Date().toISOString(),
       })
       .eq('id', registrationId)
+      .eq('payment_status', 'pending')
       .select('*, tickets(*)')
       .single()
 
-    if (updateError) {
+    if (updateError || !registration) {
       console.error('Errore aggiornamento database:', updateError)
-      return res.status(500).json({ error: 'Database update failed' })
+      return res.status(409).json({ error: 'Registrazione non trovata o già confermata' })
     }
 
     // 3. Invia email di benvenuto via Gmail
@@ -131,7 +152,7 @@ export default async function handler(req, res) {
                       <tr>
                         <td style="padding: 5px 0; color: #666; font-size: 14px;">Importo:</td>
                         <td style="padding: 5px 0; color: #f0b429; font-size: 16px; font-weight: 700; text-align: right;">
-                          €${Number(amount).toFixed(2)}
+                         €${Number(realAmount).toFixed(2)}
                         </td>
                       </tr>
                       <tr>
