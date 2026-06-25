@@ -310,27 +310,33 @@ function InstagramBanner({ settings }) {
 /* ─────────────────────────────────────────────
    PENDING PAYMENT FORM (PayPal / Bonifico)
 ───────────────────────────────────────────── */
-function PendingPaymentForm({ method, selectedTicket, regId, onSuccess, onError, onBack }) {
+function PendingPaymentForm({ method, selectedTicket, regId, form, onSuccess, onError, onBack }) {
   const [loading, setLoading] = useState(false)
   const isPaypal = method === 'paypal'
 
   const handleConfirm = async () => {
     setLoading(true)
     try {
-      const { error } = await supabase.from('registrations')
-        .update({ payment_status: isPaypal ? 'pending_paypal' : 'pending_bonifico' })
-        .eq('id', regId)
-      if (error) throw error
-      const res = await fetch('/api/send-pending-email', {
+      const res = await fetch('/api/pending-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registrationId: regId, method }),
+        body: JSON.stringify({
+          registrationId: regId,
+          ticketId: selectedTicket.id,
+          paymentMethod: method,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          leagueEmail: form.leagueEmail,
+          phone: form.phone,
+        }),
       })
-      if (!res.ok) throw new Error('Email error')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Errore')
       onSuccess(method)
     } catch (err) {
       console.error(err)
-      onError('Errore nell\'invio. Riprova.')
+      onError(err.message || 'Errore nell\'invio. Riprova.')
     } finally {
       setLoading(false)
     }
@@ -386,7 +392,7 @@ function PaymentMethodSelector({ selectedTicket, regId, form, onSuccess, onError
 
   if (method === 'paypal' || method === 'bonifico') {
     return (
-      <PendingPaymentForm method={method} selectedTicket={selectedTicket} regId={regId} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
+      <PendingPaymentForm method={method} selectedTicket={selectedTicket} regId={regId} form={form} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
     )
   }
 
@@ -442,7 +448,7 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: selectedTicket.price, ticketName: selectedTicket.name, registrationId: regId }),
+        body: JSON.stringify({ registrationId: regId, ticketId: selectedTicket.id }),
       })
       const { clientSecret, error: backendError } = await res.json()
       if (backendError) throw new Error(backendError)
@@ -455,7 +461,16 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
       const confirmRes = await fetch('/api/confirm-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentIntentId: paymentIntent.id, registrationId: regId, amount: Number(selectedTicket.price) }),
+        body: JSON.stringify({
+          paymentIntentId: paymentIntent.id,
+          registrationId: regId,
+          ticketId: selectedTicket.id,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          leagueEmail: form.leagueEmail,
+          phone: form.phone,
+        }),
       })
       const confirmData = await confirmRes.json()
       if (!confirmRes.ok) throw new Error(confirmData.error || 'Errore aggiornamento')
@@ -535,19 +550,10 @@ function FormIscrizione({ tickets, settings }) {
         setLoading(false)
         return
       }
-      const newId = crypto.randomUUID()
-      const { error } = await supabase.from('registrations').insert({
-        id: newId,
-        first_name: form.firstName,
-        last_name: form.lastName,
-        email: form.email,
-        league_email: form.leagueEmail,
-        phone: form.phone,
-        ticket_id: form.ticketId,
-        payment_status: 'pending',
-      })
-      if (error) throw error
-      setRegId(newId)
+     // Nessun INSERT qui: la registrazione viene creata dal backend solo
+      // quando il pagamento Stripe va a buon fine, oppure quando viene
+      // scelto PayPal/Bonifico. Generiamo solo l'id da passare al backend.
+      setRegId(crypto.randomUUID())
       setStep('payment')
     } catch (err) {
       console.error(err)
