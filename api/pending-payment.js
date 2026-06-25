@@ -246,9 +246,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { registrationId, paymentMethod, amount, ticketName } = req.body
+  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone } = req.body
 
-  if (!registrationId || !paymentMethod || !amount || !ticketName) {
+  if (!registrationId || !ticketId || !paymentMethod || !firstName || !lastName || !email || !leagueEmail || !phone) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
@@ -257,23 +257,63 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Aggiorna registrazione con metodo scelto (rimane pending)
-    const { data: registration, error: updateError } = await supabase
+    // 0. Idempotenza: se questa registrazione esiste già (retry/doppio click), non duplicare
+    const { data: existing } = await supabase
       .from('registrations')
-      .update({
+      .select('id')
+      .eq('id', registrationId)
+      .maybeSingle()
+
+    if (existing) {
+      return res.status(200).json({
+        success: true,
+        paymentMethod,
+        message: paymentMethod === 'paypal'
+          ? 'Iscrizione registrata. Controlla la tua email per le istruzioni PayPal.'
+          : 'Iscrizione registrata. Controlla la tua email per le coordinate bancarie.',
+      })
+    }
+
+    // 1. Prezzo REALE recuperato dal database
+    const { data: ticket, error: ticketError } = await supabase
+      .from('tickets')
+      .select('name, price, active')
+      .eq('id', ticketId)
+      .single()
+
+    if (ticketError || !ticket || !ticket.active) {
+      return res.status(404).json({ error: 'Ticket non trovato o non disponibile' })
+    }
+
+    const amount = Number(ticket.price)
+    const ticketName = ticket.name
+
+    // 2. Crea la registrazione (pending) SOLO ora che il metodo è stato scelto
+    const { data: registration, error: insertError } = await supabase
+      .from('registrations')
+      .insert({
+        id: registrationId,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        league_email: leagueEmail,
+        phone,
+        ticket_id: ticketId,
         payment_method: paymentMethod,
         payment_status: 'pending',
       })
-      .eq('id', registrationId)
       .select('*, tickets(*)')
       .single()
 
-    if (updateError) {
-      console.error('Errore aggiornamento DB:', updateError)
-      return res.status(500).json({ error: 'Database update failed' })
+    if (insertError) {
+      console.error('Errore inserimento DB:', insertError)
+      if (insertError.code === '23505') {
+        return res.status(409).json({ error: 'Questa email ha già una registrazione per questo ticket.' })
+      }
+      return res.status(500).json({ error: 'Database insert failed' })
     }
 
-    // 2. Invia email con istruzioni
+    // 3. Invia email con istruzioni
     try {
       const emailData = {
         firstName: registration.first_name,
