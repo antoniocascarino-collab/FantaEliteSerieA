@@ -1,6 +1,11 @@
 import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://fanta-elite-serie-a.vercel.app').split(',')
 
 function setCorsHeaders(req, res) {
@@ -19,14 +24,32 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    const { amount, ticketName, registrationId } = req.body
+    const { registrationId } = req.body
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Importo non valido' })
+    if (!registrationId) {
+      return res.status(400).json({ error: 'registrationId mancante' })
     }
 
+    // Prezzo REALE recuperato dal database — non viene mai usato il valore inviato dal client
+    const { data: registration, error: regError } = await supabase
+      .from('registrations')
+      .select('id, payment_status, tickets(name, price)')
+      .eq('id', registrationId)
+      .single()
+
+    if (regError || !registration || !registration.tickets) {
+      return res.status(404).json({ error: 'Registrazione non trovata' })
+    }
+
+    if (registration.payment_status !== 'pending') {
+      return res.status(400).json({ error: 'Registrazione non valida per il pagamento' })
+    }
+
+    const realAmount = Number(registration.tickets.price)
+    const ticketName = registration.tickets.name
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Stripe vuole i centesimi
+      amount: Math.round(realAmount * 100), // prezzo calcolato lato server
       currency: 'eur',
       metadata: {
         ticketName,
@@ -40,4 +63,3 @@ export default async function handler(req, res) {
     console.error('Stripe error:', err)
     res.status(500).json({ error: err.message })
   }
-}
