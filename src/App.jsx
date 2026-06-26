@@ -683,7 +683,7 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
                 <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>Usato solo per comunicazioni urgenti legate alla lega</div>
               </div>
 
-              {{errorMsg && (
+              {errorMsg && (
                 <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080' }}>{errorMsg}</div>
               )}
 
