@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Montepremi from './Montepremi.jsx'
 import FormSupport from './FormSupport.jsx'
 import Privacy from './Privacy.jsx'
+import Admin from './Admin.jsx'
 import { supabase } from './supabase.js'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -903,7 +904,7 @@ export default function App() {
   const [tickets, setTickets]     = useState([])
   const [documents, setDocuments] = useState([])
   const [loading, setLoading]     = useState(true)
-  const [page, setPage]           = useState('home')
+  const [page, setPage]           = useState(() => (typeof window !== 'undefined' && window.location.pathname === '/admin') ? 'admin' : 'home')
 
   useEffect(() => {
     async function loadData() {
@@ -919,6 +920,17 @@ export default function App() {
     }
     loadData()
   }, [])
+
+  // La pagina admin è indipendente dal caricamento dati pubblici e dal
+  // "coming soon": deve restare sempre accessibile a chi ha le credenziali.
+  if (page === 'admin') {
+    return (
+      <>
+        <GlobalStyles />
+        <Admin />
+      </>
+    )
+  }
 
   if (loading) {
     return (
