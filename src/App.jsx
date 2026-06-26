@@ -64,10 +64,18 @@ const GlobalStyles = () => (
       to   { transform: translate(-50%,-50%) rotate(360deg); }
     }
 
-    .fade-up   { animation: fadeUp 0.7s ease both; }
+ .fade-up   { animation: fadeUp 0.7s ease both; }
     .fade-up-1 { animation: fadeUp 0.7s 0.1s ease both; }
     .fade-up-2 { animation: fadeUp 0.7s 0.2s ease both; }
     .fade-up-3 { animation: fadeUp 0.7s 0.3s ease both; }
+
+    .navbar-links-desktop { display: flex; }
+    .navbar-hamburger { display: none; }
+
+    @media (max-width: 768px) {
+      .navbar-links-desktop { display: none !important; }
+      .navbar-hamburger { display: flex !important; }
+    }
   `}</style>
 )
 
@@ -122,6 +130,7 @@ function ComingSoon({ settings }) {
 ───────────────────────────────────────────── */
 function Navbar({ settings, onNavigate, currentPage }) {
   const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll)
@@ -135,54 +144,112 @@ function Navbar({ settings, onNavigate, currentPage }) {
     cursor: 'pointer', fontFamily: 'var(--font-body)', padding: 0,
   })
 
+  const mobileLinkStyle = (active) => ({
+    color: active ? 'var(--gold)' : 'var(--white)',
+    textDecoration: 'none', fontSize: '1.05rem', letterSpacing: '0.03em',
+    background: 'transparent', border: 'none', textAlign: 'left',
+    cursor: 'pointer', fontFamily: 'var(--font-body)', padding: '0.6rem 0',
+    width: '100%', display: 'block',
+  })
+
+  const goTo = (page) => { setMobileOpen(false); onNavigate(page); window.scrollTo(0, 0) }
+
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: scrolled ? 'rgba(8,9,13,0.95)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(12px)' : 'none',
-      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-      transition: 'all 0.3s ease',
-    }}>
-      <button onClick={() => onNavigate('home')}
-        style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.08em', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-        FANTAELITE SERIE A
-      </button>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        {currentPage === 'home' && (
-          <>
-            <a href="#documenti" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>Documenti</a>
-            <a href="#classifica" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>Classifica</a>
-          </>
-        )}
-        <button onClick={() => onNavigate('montepremi')} style={linkStyle(currentPage === 'montepremi')}
-          onMouseEnter={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--white)'}
-          onMouseLeave={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--muted)'}>
-          🏆 Montepremi
+    <>
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: scrolled || mobileOpen ? 'rgba(8,9,13,0.95)' : 'transparent',
+        backdropFilter: scrolled || mobileOpen ? 'blur(12px)' : 'none',
+        borderBottom: scrolled || mobileOpen ? '1px solid var(--border)' : '1px solid transparent',
+        transition: 'all 0.3s ease',
+      }}>
+        <button onClick={() => goTo('home')}
+          style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.1rem, 4.5vw, 1.8rem)', letterSpacing: '0.06em', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>
+          FANTAELITE SERIE A
         </button>
-        <button onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-          Supporto
+
+        {/* ── LINK DESKTOP (nascosti sotto 768px via CSS) ── */}
+        <div className="navbar-links-desktop" style={{ alignItems: 'center', gap: '2rem' }}>
+          {currentPage === 'home' && (
+            <>
+              <a href="#documenti" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>Documenti</a>
+              <a href="#classifica" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color = 'var(--white)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>Classifica</a>
+            </>
+          )}
+          <button onClick={() => onNavigate('montepremi')} style={linkStyle(currentPage === 'montepremi')}
+            onMouseEnter={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--white)'}
+            onMouseLeave={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--muted)'}>
+            🏆 Montepremi
+          </button>
+          <button onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+            Supporto
+          </button>
+          <button onClick={() => { onNavigate('privacy'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+            Privacy &amp; Cookie
+          </button>
+          {settings?.instagram_url && (
+            <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
+              style={{ color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', fontSize: '0.875rem' }}>
+              <InstagramIcon size={16} />
+            </a>
+          )}
+          {currentPage === 'home' && (
+            <a href="#iscrizione" style={{ padding: '0.5rem 1.25rem', background: 'var(--gold)', color: 'var(--black)', borderRadius: '100px', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em', transition: 'opacity 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              Iscriviti
+            </a>
+          )}
+        </div>
+
+        {/* ── HAMBURGER (visibile solo sotto 768px via CSS) ── */}
+        <button
+          className="navbar-hamburger"
+          onClick={() => setMobileOpen(o => !o)}
+          aria-label="Menu"
+          style={{ alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--white)', fontSize: '1.6rem', cursor: 'pointer', padding: '0.25rem', lineHeight: 1, flexShrink: 0 }}
+        >
+          {mobileOpen ? '✕' : '☰'}
         </button>
-        <button onClick={() => { onNavigate('privacy'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
-          Privacy &amp; Cookie
-        </button>
-        {settings?.instagram_url && (
-          <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', fontSize: '0.875rem' }}>
-            <InstagramIcon size={16} />
-          </a>
-        )}
-        {currentPage === 'home' && (
-          <a href="#iscrizione" style={{ padding: '0.5rem 1.25rem', background: 'var(--gold)', color: 'var(--black)', borderRadius: '100px', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em', transition: 'opacity 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            Iscriviti
-          </a>
-        )}
-      </div>
-    </nav>
+      </nav>
+
+      {/* ── PANNELLO MENU MOBILE ── */}
+      {mobileOpen && (
+        <div style={{
+          position: 'fixed', top: '62px', left: 0, right: 0, zIndex: 99,
+          background: 'rgba(8,9,13,0.98)', backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--border)',
+          padding: '0.5rem 1.5rem 1.5rem',
+          display: 'flex', flexDirection: 'column',
+          maxHeight: 'calc(100vh - 62px)', overflowY: 'auto',
+        }}>
+          {currentPage === 'home' && (
+            <>
+              <a href="#documenti" onClick={() => setMobileOpen(false)} style={mobileLinkStyle(false)}>Documenti</a>
+              <a href="#classifica" onClick={() => setMobileOpen(false)} style={mobileLinkStyle(false)}>Classifica</a>
+            </>
+          )}
+          <button onClick={() => goTo('montepremi')} style={mobileLinkStyle(currentPage === 'montepremi')}>🏆 Montepremi</button>
+          <button onClick={() => goTo('supporto')} style={mobileLinkStyle(currentPage === 'supporto')}>💬 Supporto</button>
+          <button onClick={() => goTo('privacy')} style={mobileLinkStyle(currentPage === 'privacy')}>Privacy &amp; Cookie</button>
+          {settings?.instagram_url && (
+            <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" onClick={() => setMobileOpen(false)}
+              style={{ ...mobileLinkStyle(false), display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--gold)' }}>
+              <InstagramIcon size={18} /> Instagram
+            </a>
+          )}
+          {currentPage === 'home' && (
+            <a href="#iscrizione" onClick={() => setMobileOpen(false)}
+              style={{ marginTop: '0.75rem', padding: '0.85rem', background: 'var(--gold)', color: 'var(--black)', borderRadius: '100px', textDecoration: 'none', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.05em', textAlign: 'center' }}>
+              Iscriviti
+            </a>
+          )}
+        </div>
+      )}
+    </>
   )
 }
 
