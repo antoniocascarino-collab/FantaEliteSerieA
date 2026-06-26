@@ -246,9 +246,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone } = req.body
+  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone, privacyAcceptedAt } = req.body
 
-  if (!registrationId || !ticketId || !paymentMethod || !firstName || !lastName || !email || !leagueEmail || !phone) {
+  if (!registrationId || !ticketId || !paymentMethod || !firstName || !lastName || !email || !leagueEmail || !phone || !privacyAcceptedAt) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
@@ -299,6 +299,7 @@ export default async function handler(req, res) {
         league_email: leagueEmail,
         phone,
         ticket_id: ticketId,
+        privacy_accepted_at: privacyAcceptedAt,
         payment_method: paymentMethod,
         payment_status: 'pending',
       })
