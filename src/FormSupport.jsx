@@ -18,7 +18,7 @@ const AlertIcon = ({ size = 20 }) => (
 /* ─────────────────────────────────────────────
    FORM DI SUPPORTO
 ───────────────────────────────────────────── */
-export default function FormSupport({ onBack, settings }) {
+export default function FormSupport({ onBack, settings, onNavigate }) {
   const [form, setForm] = useState({
     tipo: '',
     nome: '',
@@ -357,6 +357,13 @@ export default function FormSupport({ onBack, settings }) {
                   <>📤 Invia Richiesta</>
                 )}
               </button>
+
+            <div style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--muted)', lineHeight: 1.6 }}>
+                Inviando questo modulo, i tuoi dati saranno trattati secondo la nostra{' '}
+                <a href="#" onClick={e => { e.preventDefault(); onNavigate && onNavigate('privacy') }} style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+                  Privacy Policy
+                </a>.
+              </div>
 
               <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.6 }}>
                 In alternativa, puoi scriverci direttamente a<br />
