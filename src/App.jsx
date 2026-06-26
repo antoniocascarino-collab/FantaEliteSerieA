@@ -665,8 +665,7 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
               </div>
 
               {/* ── NUOVO: Cellulare ── */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div><label style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <PhoneIcon size={13} /> Cellulare *
                 </label>
                 <input
