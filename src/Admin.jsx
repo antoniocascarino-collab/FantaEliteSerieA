@@ -1,0 +1,401 @@
+import React, { useState, useEffect, useCallback } from 'react'
+import { supabase } from './supabase.js'
+
+/* ─────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────── */
+const STATUS_LABELS = {
+  pending: 'In attesa',
+  completed: 'Completato',
+  cancelled: 'Annullato',
+}
+const STATUS_COLORS = {
+  pending: '#f0b429',
+  completed: '#6ee7b7',
+  cancelled: '#8a8a9a',
+}
+const SUPPORT_STATUS_LABELS = {
+  pending: 'Da gestire',
+  in_progress: 'In lavorazione',
+  resolved: 'Risolto',
+}
+const SUPPORT_STATUS_COLORS = {
+  pending: '#ff8080',
+  in_progress: '#f0b429',
+  resolved: '#6ee7b7',
+}
+const PAYMENT_METHOD_LABELS = {
+  stripe: '💳 Carta',
+  paypal: '🅿️ PayPal',
+  bonifico: '🏦 Bonifico',
+}
+
+function formatDate(d) {
+  if (!d) return '—'
+  return new Date(d).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+function formatEuro(n) {
+  if (n === null || n === undefined) return '—'
+  return `€${Number(n).toFixed(2)}`
+}
+
+/* ─────────────────────────────────────────────
+   LOGIN
+───────────────────────────────────────────── */
+function AdminLogin() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    if (authError) {
+      setError('Credenziali non valide.')
+      setLoading(false)
+    }
+    // Se il login va a buon fine, onAuthStateChange nel componente Admin
+    // si occupa di aggiornare la sessione e mostrare la dashboard.
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 380, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '2.5rem' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', letterSpacing: '0.06em', color: 'var(--gold)', textAlign: 'center', marginBottom: '0.5rem' }}>
+          FANTAELITE
+        </div>
+        <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '2rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          Area Admin
+        </div>
+
+        <div style={{ marginBottom: '1.25rem' }}>
+          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>Email</label>
+          <input
+            type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus
+            style={{ width: '100%', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '1rem', outline: 'none', fontFamily: 'var(--font-body)' }}
+          />
+        </div>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>Password</label>
+          <input
+            type="password" value={password} onChange={e => setPassword(e.target.value)} required
+            style={{ width: '100%', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '1rem', outline: 'none', fontFamily: 'var(--font-body)' }}
+          />
+        </div>
+
+        {error && (
+          <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.85rem', color: '#ff8080', marginBottom: '1.25rem' }}>
+            {error}
+          </div>
+        )}
+
+        <button type="submit" disabled={loading}
+          style={{ width: '100%', padding: '0.875rem', background: loading ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-body)' }}>
+          {loading ? 'Accesso in corso...' : 'Accedi'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────
+   CARD STATISTICA
+───────────────────────────────────────────── */
+function StatCard({ label, value, sub, color }) {
+  return (
+    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1.25rem 1.5rem', flex: '1 1 200px', minWidth: 180 }}>
+      <div style={{ fontSize: '0.75rem', color: 'var(--muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: color || 'var(--white)', lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.4rem' }}>{sub}</div>}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────
+   DASHBOARD
+───────────────────────────────────────────── */
+function AdminDashboard({ onLogout }) {
+  const [tab, setTab] = useState('registrazioni') // 'registrazioni' | 'supporto'
+  const [registrations, setRegistrations] = useState([])
+  const [supportRequests, setSupportRequests] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [lastUpdate, setLastUpdate] = useState(null)
+  const [savingId, setSavingId] = useState(null)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const loadData = useCallback(async () => {
+    const [{ data: regs, error: regError }, { data: support, error: supportError }] = await Promise.all([
+      supabase.from('registrations').select('*, tickets(name, price)').order('created_at', { ascending: false }),
+      supabase.from('support_requests').select('*').order('created_at', { ascending: false }),
+    ])
+    if (regError) setErrorMsg('Errore nel caricamento delle registrazioni: ' + regError.message)
+    else if (supportError) setErrorMsg('Errore nel caricamento delle richieste di supporto: ' + supportError.message)
+    else setErrorMsg('')
+    setRegistrations(regs || [])
+    setSupportRequests(support || [])
+    setLoading(false)
+    setLastUpdate(new Date())
+  }, [])
+
+  useEffect(() => {
+    loadData()
+    const interval = setInterval(loadData, 30000)
+    return () => clearInterval(interval)
+  }, [loadData])
+
+  const updateRegistrationStatus = async (reg, newStatus) => {
+    setSavingId(reg.id)
+    const patch = { payment_status: newStatus }
+    // Se viene confermato manualmente un pagamento PayPal/Bonifico, completiamo i dati mancanti
+    if (newStatus === 'completed' && !reg.paid_amount) {
+      patch.paid_amount = reg.tickets?.price ?? null
+      patch.paid_at = new Date().toISOString()
+    }
+    const { error } = await supabase.from('registrations').update(patch).eq('id', reg.id)
+    if (error) {
+      setErrorMsg('Errore durante il salvataggio: ' + error.message)
+    } else {
+      await loadData()
+    }
+    setSavingId(null)
+  }
+
+  const updateSupportStatus = async (req, newStatus) => {
+    setSavingId(req.id)
+    const { error } = await supabase.from('support_requests').update({ status: newStatus }).eq('id', req.id)
+    if (error) {
+      setErrorMsg('Errore durante il salvataggio: ' + error.message)
+    } else {
+      await loadData()
+    }
+    setSavingId(null)
+  }
+
+  // ── Statistiche ──
+  const totaleIscritti = registrations.length
+  const completati = registrations.filter(r => r.payment_status === 'completed')
+  const pendingRows = registrations.filter(r => r.payment_status === 'pending')
+  const montepremiRaccolto = completati.reduce((sum, r) => sum + Number(r.paid_amount || 0), 0)
+  const totalePending = pendingRows.length
+  const sommaPending = pendingRows.reduce((sum, r) => sum + Number(r.tickets?.price || 0), 0)
+  const supportDaGestire = supportRequests.filter(r => r.status === 'pending').length
+
+  // ── Filtri tabella registrazioni ──
+  const filteredRegs = registrations.filter(r => {
+    if (statusFilter !== 'all' && r.payment_status !== statusFilter) return false
+    if (search) {
+      const q = search.toLowerCase()
+      const haystack = `${r.first_name} ${r.last_name} ${r.email} ${r.league_email}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  })
+
+  const selectStyle = {
+    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '6px', color: 'var(--white)', fontSize: '0.8rem', padding: '0.35rem 0.5rem',
+    fontFamily: 'var(--font-body)', cursor: 'pointer',
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--black)', padding: '2rem 1.5rem 4rem' }}>
+      <div style={{ maxWidth: 1300, margin: '0 auto' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', letterSpacing: '0.06em', color: 'var(--gold)' }}>FANTAELITE — ADMIN</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+              {lastUpdate ? `Aggiornato alle ${lastUpdate.toLocaleTimeString('it-IT')} · aggiornamento automatico ogni 30s` : 'Caricamento...'}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button onClick={loadData} style={{ padding: '0.6rem 1.1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--white)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-body)' }}>
+              ↻ Aggiorna
+            </button>
+            <button onClick={onLogout} style={{ padding: '0.6rem 1.1rem', background: 'none', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-body)' }}>
+              Esci
+            </button>
+          </div>
+        </div>
+
+        {errorMsg && (
+          <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '10px', color: '#ff8080', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Statistiche */}
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+          <StatCard label="Totale Iscritti" value={totaleIscritti} sub="tutte le registrazioni" />
+          <StatCard label="Paganti" value={completati.length} sub="pagamenti completati" color="#6ee7b7" />
+          <StatCard label="Montepremi Raccolto" value={formatEuro(montepremiRaccolto)} sub="somma pagamenti completati" color="var(--gold)" />
+          <StatCard label="In Attesa" value={totalePending} sub={`stimati ${formatEuro(sommaPending)} se confermati`} color="#f0b429" />
+          {supportDaGestire > 0 && (
+            <StatCard label="Supporto da gestire" value={supportDaGestire} sub="richieste in attesa" color="#ff8080" />
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+          <button onClick={() => setTab('registrazioni')}
+            style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'registrazioni' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'registrazioni' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
+            Registrazioni ({registrations.length})
+          </button>
+          <button onClick={() => setTab('supporto')}
+            style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'supporto' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'supporto' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
+            Supporto ({supportRequests.length})
+          </button>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--muted)' }}>Caricamento dati...</div>
+        ) : tab === 'registrazioni' ? (
+          <>
+            {/* Filtri */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              <input
+                placeholder="Cerca per nome o email..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ flex: '1 1 240px', padding: '0.6rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--white)', fontSize: '0.875rem', outline: 'none', fontFamily: 'var(--font-body)' }}
+              />
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
+                <option value="all">Tutti gli stati</option>
+                <option value="pending">In attesa</option>
+                <option value="completed">Completati</option>
+                <option value="cancelled">Annullati</option>
+              </select>
+            </div>
+
+            {/* Tabella registrazioni */}
+            <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    {['Data', 'Nome', 'Email', 'Email LegheFC', 'Telefono', 'Ticket', 'Metodo', 'Importo', 'Stato', ''].map(h => (
+                      <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRegs.length === 0 ? (
+                    <tr><td colSpan={10} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>Nessuna registrazione trovata.</td></tr>
+                  ) : filteredRegs.map(r => (
+                    <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{formatDate(r.created_at)}</td>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--white)', whiteSpace: 'nowrap' }}>{r.first_name} {r.last_name}</td>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--white)' }}>{r.email}</td>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)' }}>{r.league_email}</td>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{r.phone || '—'}</td>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--white)', whiteSpace: 'nowrap' }}>{r.tickets?.name || '—'}</td>
+                      <td style={{ padding: '0.65rem 1rem', whiteSpace: 'nowrap' }}>{PAYMENT_METHOD_LABELS[r.payment_method] || r.payment_method || '—'}</td>
+                      <td style={{ padding: '0.65rem 1rem', color: 'var(--gold)', whiteSpace: 'nowrap' }}>
+                        {r.paid_amount ? formatEuro(r.paid_amount) : (r.tickets?.price ? `(${formatEuro(r.tickets.price)})` : '—')}
+                      </td>
+                      <td style={{ padding: '0.65rem 1rem' }}>
+                        <span style={{ color: STATUS_COLORS[r.payment_status] || 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                          {STATUS_LABELS[r.payment_status] || r.payment_status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.65rem 1rem' }}>
+                        <select
+                          value={r.payment_status}
+                          disabled={savingId === r.id}
+                          onChange={e => updateRegistrationStatus(r, e.target.value)}
+                          style={selectStyle}
+                        >
+                          <option value="pending">In attesa</option>
+                          <option value="completed">Completato</option>
+                          <option value="cancelled">Annullato</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          /* Tabella supporto */
+          <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  {['Data', 'Tipo', 'Nome', 'Email', 'Email LegheFC', 'Messaggio', 'Stato', ''].map(h => (
+                    <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {supportRequests.length === 0 ? (
+                  <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>Nessuna richiesta di supporto.</td></tr>
+                ) : supportRequests.map(req => (
+                  <tr key={req.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{formatDate(req.created_at)}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--white)', whiteSpace: 'nowrap' }}>{req.type}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--white)', whiteSpace: 'nowrap' }}>{req.name}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--white)' }}>{req.email}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)' }}>{req.league_email || '—'}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)', maxWidth: 280, whiteSpace: 'normal' }}>{req.message}</td>
+                    <td style={{ padding: '0.65rem 1rem' }}>
+                      <span style={{ color: SUPPORT_STATUS_COLORS[req.status] || 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {SUPPORT_STATUS_LABELS[req.status] || req.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.65rem 1rem' }}>
+                      <select
+                        value={req.status}
+                        disabled={savingId === req.id}
+                        onChange={e => updateSupportStatus(req, e.target.value)}
+                        style={selectStyle}
+                      >
+                        <option value="pending">Da gestire</option>
+                        <option value="in_progress">In lavorazione</option>
+                        <option value="resolved">Risolto</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────
+   ENTRY POINT — gestisce la sessione
+───────────────────────────────────────────── */
+export default function Admin() {
+  const [session, setSession] = useState(undefined) // undefined = ancora da verificare
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+  }
+
+  if (session === undefined) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
+        Verifica sessione...
+      </div>
+    )
+  }
+
+  return session ? <AdminDashboard onLogout={handleLogout} /> : <AdminLogin />
+}
