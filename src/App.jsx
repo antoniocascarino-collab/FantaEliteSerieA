@@ -875,7 +875,7 @@ export default function App() {
   }
 
 if (page === 'supporto') {
-    return (<><GlobalStyles /><Navbar settings={settings} onNavigate={setPage} currentPage={page} /><FormSupport onBack={() => setPage('home')} settings={settings} /><Footer settings={settings} onNavigate={setPage} /></>)
+    return (<><GlobalStyles /><Navbar settings={settings} onNavigate={setPage} currentPage={page} /><FormSupport onBack={() => setPage('home')} settings={settings} onNavigate={setPage} /><Footer settings={settings} onNavigate={setPage} /></>)
   }
 
   if (page === 'privacy') {
