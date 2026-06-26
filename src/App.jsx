@@ -415,7 +415,7 @@ function PaymentMethodSelector({ selectedTicket, regId, form, onSuccess, onError
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}>
             <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{m.icon}</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{m.label}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem', color: 'var(--white)' }}>{m.label}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{m.sub}</div>
             </div>
             <span style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>›</span>
