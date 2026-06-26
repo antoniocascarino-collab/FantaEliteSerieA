@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Montepremi from './Montepremi.jsx'
 import FormSupport from './FormSupport.jsx'
+import Privacy from './Privacy.jsx'
 import { supabase } from './supabase.js'
 import { loadStripe } from '@stripe/stripe-js'
 import {
@@ -159,10 +160,13 @@ function Navbar({ settings, onNavigate, currentPage }) {
           onMouseLeave={e => e.currentTarget.style.color = currentPage === 'montepremi' ? 'var(--gold)' : 'var(--muted)'}>
           🏆 Montepremi
         </button>
-        <button onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }} style={linkStyle(currentPage === 'supporto')}
-          onMouseEnter={e => e.currentTarget.style.color = currentPage === 'supporto' ? 'var(--gold)' : 'var(--white)'}
-          onMouseLeave={e => e.currentTarget.style.color = currentPage === 'supporto' ? 'var(--gold)' : 'var(--muted)'}>
-          💬 Supporto
+        <button onClick={() => { onNavigate('supporto'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+          Supporto
+        </button>
+        <button onClick={() => { onNavigate('privacy'); window.scrollTo(0, 0) }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', transition: 'color 0.2s', fontFamily: 'var(--font-body)' }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}>
+          Privacy &amp; Cookie
         </button>
         {settings?.instagram_url && (
           <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer"
@@ -329,6 +333,7 @@ function PendingPaymentForm({ method, selectedTicket, regId, form, onSuccess, on
           email: form.email,
           leagueEmail: form.leagueEmail,
           phone: form.phone,
+          privacyAcceptedAt: form.privacyAcceptedAt,
         }),
       })
       const data = await res.json()
@@ -470,6 +475,7 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
           email: form.email,
           leagueEmail: form.leagueEmail,
           phone: form.phone,
+          privacyAcceptedAt: form.privacyAcceptedAt,
         }),
       })
       const confirmData = await confirmRes.json()
@@ -509,7 +515,7 @@ function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBac
 /* ─────────────────────────────────────────────
    FORM ISCRIZIONE
 ───────────────────────────────────────────── */
-function FormIscrizione({ tickets, settings }) {
+function FormIscrizione({ tickets, settings, onNavigate }) {
   const [step, setStep] = useState('form') // 'form' | 'payment' | 'success' | 'error'
   const [paymentMethod, setPaymentMethod] = useState(null)
   const [form, setForm] = useState({
@@ -519,6 +525,8 @@ function FormIscrizione({ tickets, settings }) {
     leagueEmail: '',
     phone: '',
     ticketId: '',
+    privacyAccepted: false,
+    privacyAcceptedAt: null,
   })
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -534,10 +542,14 @@ function FormIscrizione({ tickets, settings }) {
       setErrorMsg('Compila tutti i campi e seleziona un ticket.')
       return
     }
-    // Validazione telefono: almeno 8 cifre
+   // Validazione telefono: almeno 8 cifre
     const phoneDigits = form.phone.replace(/\D/g, '')
     if (phoneDigits.length < 8) {
       setErrorMsg('Inserisci un numero di cellulare valido.')
+      return
+    }
+    if (!form.privacyAccepted) {
+      setErrorMsg("Devi accettare l'informativa privacy per procedere.")
       return
     }
     setLoading(true)
@@ -553,6 +565,7 @@ function FormIscrizione({ tickets, settings }) {
      // Nessun INSERT qui: la registrazione viene creata dal backend solo
       // quando il pagamento Stripe va a buon fine, oppure quando viene
       // scelto PayPal/Bonifico. Generiamo solo l'id da passare al backend.
+     setForm(f => ({ ...f, privacyAcceptedAt: new Date().toISOString() }))
       setRegId(crypto.randomUUID())
       setStep('payment')
     } catch (err) {
@@ -670,9 +683,25 @@ function FormIscrizione({ tickets, settings }) {
                 <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>Usato solo per comunicazioni urgenti legate alla lega</div>
               </div>
 
-              {errorMsg && (
+              {{errorMsg && (
                 <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080' }}>{errorMsg}</div>
               )}
+
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.privacyAccepted}
+                  onChange={e => setForm(f => ({ ...f, privacyAccepted: e.target.checked }))}
+                  style={{ marginTop: '0.2rem', width: '16px', height: '16px', accentColor: 'var(--gold)', cursor: 'pointer', flexShrink: 0 }}
+                />
+                <span>
+                  Ho letto e accetto l'
+                  <a href="#" onClick={e => { e.preventDefault(); onNavigate && onNavigate('privacy') }} style={{ color: 'var(--gold)' }}>
+                    informativa privacy
+                  </a>
+                  {' '}*
+                </span>
+              </label>
 
               <button type="submit" disabled={loading || !selectedTicket}
                 style={{ marginTop: '0.5rem', padding: '1rem', background: loading || !selectedTicket ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', letterSpacing: '0.05em', cursor: loading || !selectedTicket ? 'not-allowed' : 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontFamily: 'var(--font-body)' }}>
@@ -846,8 +875,12 @@ export default function App() {
     return (<><GlobalStyles /><Navbar settings={settings} onNavigate={setPage} currentPage={page} /><Montepremi onBack={() => setPage('home')} settings={settings} /></>)
   }
 
-  if (page === 'supporto') {
+if (page === 'supporto') {
     return (<><GlobalStyles /><Navbar settings={settings} onNavigate={setPage} currentPage={page} /><FormSupport onBack={() => setPage('home')} settings={settings} /><Footer settings={settings} onNavigate={setPage} /></>)
+  }
+
+  if (page === 'privacy') {
+    return (<><GlobalStyles /><Navbar settings={settings} onNavigate={setPage} currentPage={page} /><Privacy onBack={() => setPage('home')} /><Footer settings={settings} onNavigate={setPage} /></>)
   }
 
   return (
@@ -858,7 +891,7 @@ export default function App() {
         <Hero settings={settings} />
         <Documenti documents={documents} />
         <InstagramBanner settings={settings} />
-        <FormIscrizione tickets={tickets} settings={settings} />
+        <FormIscrizione tickets={tickets} settings={settings} onNavigate={setPage} />
       </main>
       <Footer settings={settings} onNavigate={setPage} />
     </>
