@@ -28,11 +28,29 @@ function setCorsHeaders(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 }
 
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for']
+  if (forwarded) return forwarded.split(',')[0].trim()
+  return req.socket?.remoteAddress || 'unknown'
+}
+
 export default async function handler(req, res) {
   setCorsHeaders(req, res)
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const clientIp = getClientIp(req)
+  const { data: allowed, error: rateLimitError } = await supabase.rpc('check_rate_limit', {
+    p_key: `confirm:${clientIp}`,
+    p_max_requests: 10,
+    p_window_seconds: 600,
+  })
+  if (rateLimitError) {
+    console.error('Errore rate limit:', rateLimitError)
+  } else if (!allowed) {
+    return res.status(429).json({ error: 'Troppe richieste. Riprova tra qualche minuto.' })
   }
 
 const { paymentIntentId, registrationId, ticketId, firstName, lastName, email, leagueEmail, phone, privacyAcceptedAt } = req.body
