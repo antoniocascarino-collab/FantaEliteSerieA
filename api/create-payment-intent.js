@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { revalidateInviteCode } from './_lib/inviteCode.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const supabase = createClient(
@@ -42,7 +43,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { registrationId, ticketId } = req.body
+    const { registrationId, ticketId, email, inviteCode } = req.body
 
     if (!registrationId || !ticketId) {
       return res.status(400).json({ error: 'Dati mancanti' })
@@ -59,21 +60,28 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Ticket non trovato o non disponibile' })
     }
 
-    const realAmount = Number(ticket.price)
+    // Codice presentazione: rivalidato SEMPRE lato server, mai fidandosi del client
+    const codeNormalized = (inviteCode || '').trim().toUpperCase()
+    const validated = codeNormalized ? await revalidateInviteCode(supabase, codeNormalized, email) : { valid: false, discount: 0 }
+    const discountAmount = validated.valid ? 5 : 0
+
+    const realAmount = Math.max(0, Number(ticket.price) - discountAmount)
     const ticketName = ticket.name
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(realAmount * 100), // prezzo calcolato lato server
+      amount: Math.round(realAmount * 100), // prezzo calcolato lato server, già scontato
       currency: 'eur',
       metadata: {
         ticketName,
         registrationId,
         ticketId,
+        referralCodeUsed: validated.valid ? codeNormalized : '',
+        discountAmount: String(discountAmount),
       },
       description: `FantaElite — ${ticketName}`,
     })
 
-    res.status(200).json({ clientSecret: paymentIntent.client_secret })
+    res.status(200).json({ clientSecret: paymentIntent.client_secret, amount: realAmount, discountAmount })
   } catch (err) {
     console.error('Stripe error:', err)
     res.status(500).json({ error: err.message })
