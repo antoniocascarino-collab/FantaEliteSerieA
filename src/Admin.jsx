@@ -118,8 +118,9 @@ function StatCard({ label, value, sub, color }) {
    DASHBOARD
 ───────────────────────────────────────────── */
 function AdminDashboard({ onLogout }) {
-  const [tab, setTab] = useState('registrazioni') // 'registrazioni' | 'supporto'
+  const [tab, setTab] = useState('registrazioni') // 'registrazioni' | 'inviti' | 'supporto'
   const [registrations, setRegistrations] = useState([])
+  const [rewards, setRewards] = useState([])
   const [supportRequests, setSupportRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(null)
@@ -129,14 +130,25 @@ function AdminDashboard({ onLogout }) {
   const [errorMsg, setErrorMsg] = useState('')
 
   const loadData = useCallback(async () => {
-    const [{ data: regs, error: regError }, { data: support, error: supportError }] = await Promise.all([
+    const [
+      { data: regs, error: regError },
+      { data: rew, error: rewError },
+      { data: support, error: supportError },
+    ] = await Promise.all([
       supabase.from('registrations').select('*, tickets(name, price)').order('created_at', { ascending: false }),
+      supabase.from('invite_rewards').select(`
+        *,
+        owner:registrations!invite_rewards_owner_registration_id_fkey(first_name,last_name,email,invite_code),
+        redeemed:registrations!invite_rewards_redeemed_registration_id_fkey(first_name,last_name,email)
+      `).order('created_at', { ascending: false }),
       supabase.from('support_requests').select('*').order('created_at', { ascending: false }),
     ])
     if (regError) setErrorMsg('Errore nel caricamento delle registrazioni: ' + regError.message)
+    else if (rewError) setErrorMsg('Errore nel caricamento dei rimborsi invito: ' + rewError.message)
     else if (supportError) setErrorMsg('Errore nel caricamento delle richieste di supporto: ' + supportError.message)
     else setErrorMsg('')
     setRegistrations(regs || [])
+    setRewards(rew || [])
     setSupportRequests(support || [])
     setLoading(false)
     setLastUpdate(new Date())
@@ -150,13 +162,44 @@ function AdminDashboard({ onLogout }) {
 
   const updateRegistrationStatus = async (reg, newStatus) => {
     setSavingId(reg.id)
-    const patch = { payment_status: newStatus }
-    // Se viene confermato manualmente un pagamento PayPal/Bonifico, completiamo i dati mancanti
-    if (newStatus === 'completed' && !reg.paid_amount) {
-      patch.paid_amount = reg.tickets?.price ?? null
-      patch.paid_at = new Date().toISOString()
+
+    if (newStatus === 'completed' && reg.payment_status !== 'completed') {
+      // Passa dal nuovo endpoint sicuro: assegna il codice invito, accredita
+      // l'eventuale rimborso all'invitante e invia la mail di benvenuto.
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const token = sessionData?.session?.access_token
+        const res = await fetch('/api/admin-confirm-registration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ registrationId: reg.id }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Errore durante la conferma')
+        await loadData()
+      } catch (err) {
+        setErrorMsg('Errore durante la conferma: ' + err.message)
+      }
+      setSavingId(null)
+      return
     }
-    const { error } = await supabase.from('registrations').update(patch).eq('id', reg.id)
+
+    // Altri cambi di stato (pending / cancelled) restano diretti
+    const { error } = await supabase.from('registrations').update({ payment_status: newStatus }).eq('id', reg.id)
+    if (error) {
+      setErrorMsg('Errore durante il salvataggio: ' + error.message)
+    } else {
+      await loadData()
+    }
+    setSavingId(null)
+  }
+
+  const updatePayoutStatus = async (reward, newStatus) => {
+    setSavingId(reward.id)
+    const patch = { payout_status: newStatus }
+    if (newStatus === 'paid') patch.paid_at = new Date().toISOString()
+    else patch.paid_at = null
+    const { error } = await supabase.from('invite_rewards').update(patch).eq('id', reward.id)
     if (error) {
       setErrorMsg('Errore durante il salvataggio: ' + error.message)
     } else {
@@ -184,6 +227,8 @@ function AdminDashboard({ onLogout }) {
   const totalePending = pendingRows.length
   const sommaPending = pendingRows.reduce((sum, r) => sum + Number(r.tickets?.price || 0), 0)
   const supportDaGestire = supportRequests.filter(r => r.status === 'pending').length
+  const rimborsiDaPagare = rewards.filter(r => r.payout_status === 'pending').reduce((sum, r) => sum + Number(r.amount || 0), 0)
+  const rimborsiPagati = rewards.filter(r => r.payout_status === 'paid').reduce((sum, r) => sum + Number(r.amount || 0), 0)
 
   // ── Filtri tabella registrazioni ──
   const filteredRegs = registrations.filter(r => {
@@ -236,6 +281,8 @@ function AdminDashboard({ onLogout }) {
           <StatCard label="Paganti" value={completati.length} sub="pagamenti completati" color="#6ee7b7" />
           <StatCard label="Montepremi Raccolto" value={formatEuro(montepremiRaccolto)} sub="somma pagamenti completati" color="var(--gold)" />
           <StatCard label="In Attesa" value={totalePending} sub={`stimati ${formatEuro(sommaPending)} se confermati`} color="#f0b429" />
+          <StatCard label="Rimborsi da pagare" value={formatEuro(rimborsiDaPagare)} sub={`${rewards.filter(r => r.payout_status === 'pending').length} rimborsi in sospeso`} color="#ff8080" />
+          <StatCard label="Rimborsi pagati" value={formatEuro(rimborsiPagati)} sub="totale già erogato" color="#6ee7b7" />
           {supportDaGestire > 0 && (
             <StatCard label="Supporto da gestire" value={supportDaGestire} sub="richieste in attesa" color="#ff8080" />
           )}
@@ -246,6 +293,10 @@ function AdminDashboard({ onLogout }) {
           <button onClick={() => setTab('registrazioni')}
             style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'registrazioni' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'registrazioni' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
             Registrazioni ({registrations.length})
+          </button>
+          <button onClick={() => setTab('inviti')}
+            style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'inviti' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'inviti' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
+            Rimborsi Invito ({rewards.length})
           </button>
           <button onClick={() => setTab('supporto')}
             style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'supporto' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'supporto' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
@@ -278,14 +329,14 @@ function AdminDashboard({ onLogout }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    {['Data', 'Nome', 'Email', 'Email LegheFC', 'Telefono', 'Ticket', 'Metodo', 'Importo', 'Stato', ''].map(h => (
+                    {['Data', 'Nome', 'Email', 'Email LegheFC', 'Telefono', 'Ticket', 'Metodo', 'Importo', 'Invito', 'Stato', ''].map(h => (
                       <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRegs.length === 0 ? (
-                    <tr><td colSpan={10} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>Nessuna registrazione trovata.</td></tr>
+                    <tr><td colSpan={11} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>Nessuna registrazione trovata.</td></tr>
                   ) : filteredRegs.map(r => (
                     <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{formatDate(r.created_at)}</td>
@@ -297,6 +348,12 @@ function AdminDashboard({ onLogout }) {
                       <td style={{ padding: '0.65rem 1rem', whiteSpace: 'nowrap' }}>{PAYMENT_METHOD_LABELS[r.payment_method] || r.payment_method || '—'}</td>
                       <td style={{ padding: '0.65rem 1rem', color: 'var(--gold)', whiteSpace: 'nowrap' }}>
                         {r.paid_amount ? formatEuro(r.paid_amount) : (r.tickets?.price ? `(${formatEuro(r.tickets.price)})` : '—')}
+                        {Number(r.discount_amount) > 0 && <div style={{ fontSize: '0.7rem', color: '#6ee7b7' }}>-{formatEuro(r.discount_amount)} invito</div>}
+                      </td>
+                      <td style={{ padding: '0.65rem 1rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                        {r.invite_code && <div style={{ color: 'var(--gold)', fontWeight: 700, fontFamily: 'monospace' }}>{r.invite_code}</div>}
+                        {r.referral_code_used && <div style={{ color: '#6ee7b7' }}>da: {r.referral_code_used}</div>}
+                        {!r.invite_code && !r.referral_code_used && '—'}
                       </td>
                       <td style={{ padding: '0.65rem 1rem' }}>
                         <span style={{ color: STATUS_COLORS[r.payment_status] || 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
@@ -321,6 +378,55 @@ function AdminDashboard({ onLogout }) {
               </table>
             </div>
           </>
+        ) : tab === 'inviti' ? (
+          /* Tabella rimborsi invito */
+          <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  {['Data', 'Codice', 'Proprietario', 'Iscritto invitato', 'Importo', 'Stato', ''].map(h => (
+                    <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rewards.length === 0 ? (
+                  <tr><td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>Nessun rimborso maturato finora.</td></tr>
+                ) : rewards.map(rw => (
+                  <tr key={rw.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{formatDate(rw.created_at)}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--gold)', fontFamily: 'monospace', fontWeight: 700, whiteSpace: 'nowrap' }}>{rw.code}</td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--white)' }}>
+                      {rw.owner ? `${rw.owner.first_name} ${rw.owner.last_name}` : '—'}
+                      <div style={{ color: 'var(--muted)', fontSize: '0.75rem' }}>{rw.owner?.email}</div>
+                    </td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--white)' }}>
+                      {rw.redeemed ? `${rw.redeemed.first_name} ${rw.redeemed.last_name}` : '—'}
+                      <div style={{ color: 'var(--muted)', fontSize: '0.75rem' }}>{rw.redeemed?.email}</div>
+                    </td>
+                    <td style={{ padding: '0.65rem 1rem', color: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap' }}>{formatEuro(rw.amount)}</td>
+                    <td style={{ padding: '0.65rem 1rem' }}>
+                      <span style={{ color: rw.payout_status === 'paid' ? '#6ee7b7' : '#f0b429', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {rw.payout_status === 'paid' ? 'Pagato' : 'Da pagare'}
+                      </span>
+                      {rw.paid_at && <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{formatDate(rw.paid_at)}</div>}
+                    </td>
+                    <td style={{ padding: '0.65rem 1rem' }}>
+                      <select
+                        value={rw.payout_status}
+                        disabled={savingId === rw.id}
+                        onChange={e => updatePayoutStatus(rw, e.target.value)}
+                        style={selectStyle}
+                      >
+                        <option value="pending">Da pagare</option>
+                        <option value="paid">Pagato</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           /* Tabella supporto */
           <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
