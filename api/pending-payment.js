@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import nodemailer from 'nodemailer'
+import { revalidateInviteCode } from './_lib/inviteCode.js'
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -21,8 +22,16 @@ const BANCA = {
   banca: process.env.BANCA_NOME || 'Banca Esempio',
 }
 
+function discountRow(discountAmount) {
+  if (!discountAmount || Number(discountAmount) <= 0) return ''
+  return `<tr>
+    <td style="padding:8px 0;color:#8a8a9a;font-size:13px;border-top:1px solid #2a2a3e;">Sconto codice invito:</td>
+    <td style="padding:8px 0;color:#6ee7b7;font-size:14px;font-weight:700;border-top:1px solid #2a2a3e;">-€${Number(discountAmount).toFixed(2)}</td>
+  </tr>`
+}
+
 // ─── HTML email PayPal ────────────────────────────────────────────────────────
-function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, registrationId }) {
+function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, discountAmount }) {
   const causale = `Quota ticket FantaLega ${email}`
   return {
     subject: '⏳ Iscrizione FantaElite Serie A — Completa il pagamento PayPal',
@@ -65,6 +74,10 @@ function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, regi
                     <td style="padding:5px 0;color:#666;font-size:14px;">Ticket:</td>
                     <td style="padding:5px 0;color:#08090d;font-size:14px;font-weight:600;text-align:right;">${ticketName}</td>
                   </tr>
+                  ${discountAmount > 0 ? `<tr>
+                    <td style="padding:5px 0;color:#666;font-size:14px;">Sconto codice invito:</td>
+                    <td style="padding:5px 0;color:#6ee7b7;font-size:14px;font-weight:700;text-align:right;">-€${Number(discountAmount).toFixed(2)}</td>
+                  </tr>` : ''}
                   <tr>
                     <td style="padding:5px 0;color:#666;font-size:14px;">Importo:</td>
                     <td style="padding:5px 0;color:#f0b429;font-size:16px;font-weight:700;text-align:right;">€${Number(amount).toFixed(2)}</td>
@@ -92,7 +105,7 @@ function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, regi
             <!-- Avviso -->
             <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:0 0 25px;">
               <p style="margin:0;color:#856404;font-size:13px;line-height:1.6;">
-                ⚠️ <strong>Importante:</strong> la tua iscrizione sarà confermata entro <strong>24-48 ore</strong> dalla ricezione del pagamento. Riceverai un'email di conferma.
+                ⚠️ <strong>Importante:</strong> la tua iscrizione sarà confermata entro <strong>24-48 ore</strong> dalla ricezione del pagamento. Riceverai un'email di conferma con il tuo codice presentazione personale.
               </p>
             </div>
 
@@ -116,7 +129,7 @@ function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, regi
 }
 
 // ─── HTML email Bonifico ──────────────────────────────────────────────────────
-function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, registrationId }) {
+function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, discountAmount }) {
   const causale = `Quota ticket FantaLega ${email}`
   return {
     subject: '⏳ Iscrizione FantaElite Serie A — Coordinate bancarie per il bonifico',
@@ -159,6 +172,10 @@ function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, re
                     <td style="padding:5px 0;color:#666;font-size:14px;">Ticket:</td>
                     <td style="padding:5px 0;color:#08090d;font-size:14px;font-weight:600;text-align:right;">${ticketName}</td>
                   </tr>
+                  ${discountAmount > 0 ? `<tr>
+                    <td style="padding:5px 0;color:#666;font-size:14px;">Sconto codice invito:</td>
+                    <td style="padding:5px 0;color:#6ee7b7;font-size:14px;font-weight:700;text-align:right;">-€${Number(discountAmount).toFixed(2)}</td>
+                  </tr>` : ''}
                   <tr>
                     <td style="padding:5px 0;color:#666;font-size:14px;">Importo:</td>
                     <td style="padding:5px 0;color:#f0b429;font-size:16px;font-weight:700;text-align:right;">€${Number(amount).toFixed(2)}</td>
@@ -183,6 +200,7 @@ function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, re
                   <td style="padding:8px 0;color:#8a8a9a;font-size:13px;border-top:1px solid #2a2a3e;">Banca:</td>
                   <td style="padding:8px 0;color:#ffffff;font-size:14px;border-top:1px solid #2a2a3e;">${BANCA.banca}</td>
                 </tr>
+                ${discountRow(discountAmount)}
                 <tr>
                   <td style="padding:8px 0;color:#8a8a9a;font-size:13px;border-top:1px solid #2a2a3e;">Importo:</td>
                   <td style="padding:8px 0;color:#f0b429;font-size:16px;font-weight:700;border-top:1px solid #2a2a3e;">€${Number(amount).toFixed(2)}</td>
@@ -204,7 +222,7 @@ function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, re
             <!-- Avviso tempi -->
             <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:0 0 25px;">
               <p style="margin:0;color:#856404;font-size:13px;line-height:1.6;">
-                ⚠️ <strong>Tempi di conferma:</strong> la tua iscrizione sarà attivata entro <strong>24-48 ore</strong> dalla ricezione del bonifico (i tempi bancari possono variare).
+                ⚠️ <strong>Tempi di conferma:</strong> la tua iscrizione sarà attivata entro <strong>24-48 ore</strong> dalla ricezione del bonifico (i tempi bancari possono variare). Riceverai un'email di conferma con il tuo codice presentazione personale.
               </p>
             </div>
 
@@ -264,7 +282,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Troppe richieste. Riprova tra qualche minuto.' })
   }
 
-  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone, privacyAcceptedAt } = req.body
+  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone, privacyAcceptedAt, inviteCode } = req.body
 
   if (!registrationId || !ticketId || !paymentMethod || !firstName || !lastName || !email || !leagueEmail || !phone || !privacyAcceptedAt) {
     return res.status(400).json({ error: 'Missing required fields' })
@@ -303,7 +321,12 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Ticket non trovato o non disponibile' })
     }
 
-    const amount = Number(ticket.price)
+    // 1b. Codice presentazione: rivalidato SEMPRE lato server
+    const codeNormalized = (inviteCode || '').trim().toUpperCase()
+    const validated = codeNormalized ? await revalidateInviteCode(supabase, codeNormalized, email) : { valid: false, discount: 0 }
+    const discountAmount = validated.valid ? 5 : 0
+
+    const amount = Math.max(0, Number(ticket.price) - discountAmount)
     const ticketName = ticket.name
 
     // 2. Crea la registrazione (pending) SOLO ora che il metodo è stato scelto
@@ -320,6 +343,8 @@ export default async function handler(req, res) {
         privacy_accepted_at: privacyAcceptedAt,
         payment_method: paymentMethod,
         payment_status: 'pending',
+        discount_amount: discountAmount,
+        referral_code_used: validated.valid ? codeNormalized : null,
       })
       .select('*, tickets(*)')
       .single()
@@ -332,7 +357,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Database insert failed' })
     }
 
-    // 3. Invia email con istruzioni
+    // 3. Invia email con istruzioni (il codice presentazione personale e il rimborso
+    //    all'invitante verranno assegnati solo alla conferma del pagamento da parte dell'admin)
     try {
       const emailData = {
         firstName: registration.first_name,
@@ -340,7 +366,7 @@ export default async function handler(req, res) {
         email: registration.email,
         ticketName: registration.tickets?.name || ticketName,
         amount,
-        registrationId,
+        discountAmount,
       }
 
       const { subject, html } =
@@ -363,6 +389,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       paymentMethod,
+      amount,
+      discountAmount,
       message:
         paymentMethod === 'paypal'
           ? 'Iscrizione registrata. Controlla la tua email per le istruzioni PayPal.'
