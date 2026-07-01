@@ -241,11 +241,12 @@ function AdminDashboard({ onLogout }) {
     return true
   })
 
-  const selectStyle = {
+ const selectStyle = {
     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: '6px', color: 'var(--white)', fontSize: '0.8rem', padding: '0.35rem 0.5rem',
-    fontFamily: 'var(--font-body)', cursor: 'pointer',
+    fontFamily: 'var(--font-body)', cursor: 'pointer', colorScheme: 'dark',
   }
+  const optionStyle = { background: '#111220', color: '#f5f5f0' }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--black)', padding: '2rem 1.5rem 4rem' }}>
@@ -361,15 +362,15 @@ function AdminDashboard({ onLogout }) {
                         </span>
                       </td>
                       <td style={{ padding: '0.65rem 1rem' }}>
-                        <select
+                       <select
                           value={r.payment_status}
                           disabled={savingId === r.id}
                           onChange={e => updateRegistrationStatus(r, e.target.value)}
                           style={selectStyle}
                         >
-                          <option value="pending">In attesa</option>
-                          <option value="completed">Completato</option>
-                          <option value="cancelled">Annullato</option>
+                          <option value="pending" style={optionStyle}>In attesa</option>
+                          <option value="completed" style={optionStyle}>Completato</option>
+                          <option value="cancelled" style={optionStyle}>Annullato</option>
                         </select>
                       </td>
                     </tr>
@@ -412,14 +413,14 @@ function AdminDashboard({ onLogout }) {
                       {rw.paid_at && <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{formatDate(rw.paid_at)}</div>}
                     </td>
                     <td style={{ padding: '0.65rem 1rem' }}>
-                      <select
+                     <select
                         value={rw.payout_status}
                         disabled={savingId === rw.id}
                         onChange={e => updatePayoutStatus(rw, e.target.value)}
                         style={selectStyle}
                       >
-                        <option value="pending">Da pagare</option>
-                        <option value="paid">Pagato</option>
+                        <option value="pending" style={optionStyle}>Da pagare</option>
+                        <option value="paid" style={optionStyle}>Pagato</option>
                       </select>
                     </td>
                   </tr>
@@ -455,15 +456,15 @@ function AdminDashboard({ onLogout }) {
                       </span>
                     </td>
                     <td style={{ padding: '0.65rem 1rem' }}>
-                      <select
+                     <select
                         value={req.status}
                         disabled={savingId === req.id}
                         onChange={e => updateSupportStatus(req, e.target.value)}
                         style={selectStyle}
                       >
-                        <option value="pending">Da gestire</option>
-                        <option value="in_progress">In lavorazione</option>
-                        <option value="resolved">Risolto</option>
+                        <option value="pending" style={optionStyle}>Da gestire</option>
+                        <option value="in_progress" style={optionStyle}>In lavorazione</option>
+                        <option value="resolved" style={optionStyle}>Risolto</option>
                       </select>
                     </td>
                   </tr>
