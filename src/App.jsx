@@ -382,10 +382,10 @@ function InstagramBanner({ settings }) {
 /* ─────────────────────────────────────────────
    PENDING PAYMENT FORM (PayPal / Bonifico)
 ───────────────────────────────────────────── */
-function PendingPaymentForm({ method, selectedTicket, regId, form, inviteCode, discount, onSuccess, onError, onBack }) {
+function PendingPaymentForm({ method, selectedTicket, regId, form, onSuccess, onError, onBack }) {
   const [loading, setLoading] = useState(false)
   const isPaypal = method === 'paypal'
-  const finalPrice = Math.max(0, Number(selectedTicket.price) - discount)
+  const finalPrice = Number(selectedTicket.price)
 
   const handleConfirm = async () => {
     setLoading(true)
@@ -403,7 +403,6 @@ function PendingPaymentForm({ method, selectedTicket, regId, form, inviteCode, d
           leagueEmail: form.leagueEmail,
           phone: form.phone,
           privacyAcceptedAt: form.privacyAcceptedAt,
-          inviteCode,
         }),
       })
       const data = await res.json()
@@ -433,10 +432,8 @@ function PendingPaymentForm({ method, selectedTicket, regId, form, inviteCode, d
         <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>Importo da pagare</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--gold)', lineHeight: 1 }}>€{finalPrice.toFixed(0)}</div>
-          {discount > 0 && <div style={{ fontSize: '1rem', color: 'var(--muted)', textDecoration: 'line-through' }}>€{Number(selectedTicket.price).toFixed(0)}</div>}
         </div>
         <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.3rem' }}>{selectedTicket.name}</div>
-        {discount > 0 && <div style={{ fontSize: '0.78rem', color: '#6ee7b7', marginTop: '0.3rem' }}>🎟️ Sconto codice invito applicato: -€{discount.toFixed(0)}</div>}
       </div>
       <button onClick={handleConfirm} disabled={loading}
         style={{ width: '100%', padding: '1rem', background: loading ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -452,9 +449,9 @@ function PendingPaymentForm({ method, selectedTicket, regId, form, inviteCode, d
 /* ─────────────────────────────────────────────
    SELEZIONE METODO DI PAGAMENTO
 ───────────────────────────────────────────── */
-function PaymentMethodSelector({ selectedTicket, regId, form, inviteCode, discount, onSuccess, onError, onBack }) {
+function PaymentMethodSelector({ selectedTicket, regId, form, onSuccess, onError, onBack }) {
   const [method, setMethod] = useState(null)
-  const finalPrice = Math.max(0, Number(selectedTicket.price) - discount)
+  const finalPrice = Number(selectedTicket.price)
 
   const methods = [
     { id: 'stripe',   icon: '💳', label: 'Carta di credito / debito', sub: 'Pagamento immediato e sicuro via Stripe',      color: '#635bff' },
@@ -465,14 +462,14 @@ function PaymentMethodSelector({ selectedTicket, regId, form, inviteCode, discou
   if (method === 'stripe') {
     return (
       <Elements stripe={stripePromise}>
-        <StripeCardForm selectedTicket={selectedTicket} regId={regId} form={form} inviteCode={inviteCode} discount={discount} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
+        <StripeCardForm selectedTicket={selectedTicket} regId={regId} form={form} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
       </Elements>
     )
   }
 
   if (method === 'paypal' || method === 'bonifico') {
     return (
-      <PendingPaymentForm method={method} selectedTicket={selectedTicket} regId={regId} form={form} inviteCode={inviteCode} discount={discount} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
+      <PendingPaymentForm method={method} selectedTicket={selectedTicket} regId={regId} form={form} onSuccess={onSuccess} onError={onError} onBack={() => setMethod(null)} />
     )
   }
 
@@ -482,9 +479,7 @@ function PaymentMethodSelector({ selectedTicket, regId, form, inviteCode, discou
         <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>Scegli il metodo di pagamento</div>
         <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
           Ticket: {selectedTicket.name} · €{finalPrice.toFixed(0)}
-          {discount > 0 && <span style={{ textDecoration: 'line-through', marginLeft: '0.4rem' }}>€{Number(selectedTicket.price).toFixed(0)}</span>}
         </div>
-        {discount > 0 && <div style={{ fontSize: '0.78rem', color: '#6ee7b7', marginTop: '0.3rem' }}>🎟️ Sconto codice invito applicato: -€{discount.toFixed(0)}</div>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
         {methods.map(m => (
@@ -511,12 +506,12 @@ function PaymentMethodSelector({ selectedTicket, regId, form, inviteCode, discou
 /* ─────────────────────────────────────────────
    STRIPE CARD FORM
 ───────────────────────────────────────────── */
-function StripeCardForm({ selectedTicket, regId, form, inviteCode, discount, onSuccess, onError, onBack }) {
+function StripeCardForm({ selectedTicket, regId, form, onSuccess, onError, onBack }) {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
   const [cardError, setCardError] = useState('')
-  const finalPrice = Math.max(0, Number(selectedTicket.price) - discount)
+  const finalPrice = Number(selectedTicket.price)
 
   const cardStyle = {
     style: {
@@ -533,7 +528,7 @@ function StripeCardForm({ selectedTicket, regId, form, inviteCode, discount, onS
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registrationId: regId, ticketId: selectedTicket.id, email: form.email, inviteCode }),
+        body: JSON.stringify({ registrationId: regId, ticketId: selectedTicket.id, email: form.email }),
       })
       const { clientSecret, error: backendError } = await res.json()
       if (backendError) throw new Error(backendError)
@@ -560,7 +555,7 @@ function StripeCardForm({ selectedTicket, regId, form, inviteCode, discount, onS
       })
       const confirmData = await confirmRes.json()
       if (!confirmRes.ok) throw new Error(confirmData.error || 'Errore aggiornamento')
-      onSuccess('stripe', { inviteCode: confirmData.registration?.invite_code })
+      onSuccess('stripe')
     } catch (err) {
       console.error(err)
       setCardError(err.message || 'Errore nel pagamento. Riprova.')
@@ -574,11 +569,8 @@ function StripeCardForm({ selectedTicket, regId, form, inviteCode, discount, onS
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>💳 Pagamento con carta</div>
         <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
-          Importo: €{finalPrice.toFixed(0)}
-          {discount > 0 && <span style={{ textDecoration: 'line-through', margin: '0 0.4rem' }}>€{Number(selectedTicket.price).toFixed(0)}</span>}
-          · {selectedTicket.name}
+          Importo: €{finalPrice.toFixed(0)} · {selectedTicket.name}
         </div>
-        {discount > 0 && <div style={{ fontSize: '0.78rem', color: '#6ee7b7', marginTop: '0.3rem' }}>🎟️ Sconto codice invito applicato: -€{discount.toFixed(0)}</div>}
       </div>
       <div style={{ padding: '0.875rem 1rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', marginBottom: '1rem' }}>
         <CardElement options={cardStyle} />
@@ -600,11 +592,9 @@ function StripeCardForm({ selectedTicket, regId, form, inviteCode, discount, onS
 /* ─────────────────────────────────────────────
    FORM ISCRIZIONE
 ───────────────────────────────────────────── */
-function FormIscrizione({ tickets, settings, onNavigate }) {
-  const [step, setStep] = useState('form') // 'form' | 'payment' | 'success' | 'error'
-  const [formTab, setFormTab] = useState('dati') // 'dati' | 'invito'
+function FormIscrizione({ tickets, settings, availability, onNavigate }) {
+  const [step, setStep] = useState('form') // 'form' | 'payment' | 'freeConfirm' | 'success' | 'error'
   const [paymentMethod, setPaymentMethod] = useState(null)
-  const [ownInviteCode, setOwnInviteCode] = useState(null)
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -620,36 +610,26 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
   const [errorMsg, setErrorMsg] = useState('')
   const [regId, setRegId] = useState(null)
 
-  // ── Codice presentazione ──
-  const [inviteCodeInput, setInviteCodeInput] = useState('')
-  const [inviteStatus, setInviteStatus] = useState('idle') // idle | checking | valid | invalid
-  const [inviteMessage, setInviteMessage] = useState('')
-  const discount = inviteStatus === 'valid' ? 5 : 0
-
-  const checkInviteCode = async (code, email) => {
-    const trimmed = (code || '').trim()
-    if (!trimmed) { setInviteStatus('idle'); setInviteMessage(''); return }
-    setInviteStatus('checking')
-    try {
-      const { data, error } = await supabase.rpc('validate_invite_code', { p_code: trimmed, p_email: email || null })
-      const result = data && data[0]
-      if (error || !result || !result.valid) {
-        setInviteStatus('invalid')
-        setInviteMessage(result?.reason || 'Codice non valido.')
-      } else {
-        setInviteStatus('valid')
-        setInviteMessage('Codice valido! Sconto di €5 applicato.')
-      }
-    } catch (err) {
-      setInviteStatus('invalid')
-      setInviteMessage('Errore nella verifica del codice.')
-    }
+  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const handleTicketSelect = (t) => {
+    if (isSoldOut(t)) return
+    setSelectedTicket(t)
+    setForm(f => ({ ...f, ticketId: t.id }))
   }
 
-  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-  const handleTicketSelect = (t) => { setSelectedTicket(t); setForm(f => ({ ...f, ticketId: t.id })) }
+  // Disponibilità: max_participants nullo = illimitato
+  const remainingFor = (t) => {
+    if (!t.max_participants) return null
+    const sold = availability?.[t.id] || 0
+    return Math.max(0, t.max_participants - sold)
+  }
+  const isSoldOut = (t) => {
+    const remaining = remainingFor(t)
+    return remaining !== null && remaining <= 0
+  }
 
-  const finalPrice = selectedTicket ? Math.max(0, Number(selectedTicket.price) - discount) : 0
+  const finalPrice = selectedTicket ? Number(selectedTicket.price) : 0
+  const isFreeTicket = selectedTicket && Number(selectedTicket.price) === 0
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -667,6 +647,10 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
       setErrorMsg("Devi accettare l'informativa privacy per procedere.")
       return
     }
+    if (isSoldOut(selectedTicket)) {
+      setErrorMsg('Questo ticket è esaurito. Scegline un altro.')
+      return
+    }
     setLoading(true)
     setErrorMsg('')
     try {
@@ -677,19 +661,47 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
         setLoading(false)
         return
       }
-      // Se è presente un codice invito, rivalidalo con l'email definitiva prima di procedere
-      if (inviteCodeInput.trim()) {
-        await checkInviteCode(inviteCodeInput, form.email)
-      }
      // Nessun INSERT qui: la registrazione viene creata dal backend solo
-      // quando il pagamento Stripe va a buon fine, oppure quando viene
-      // scelto PayPal/Bonifico. Generiamo solo l'id da passare al backend.
+      // quando il pagamento Stripe va a buon fine, quando viene scelto
+      // PayPal/Bonifico, oppure subito per i ticket gratuiti. Generiamo
+      // solo l'id da passare al backend.
      setForm(f => ({ ...f, privacyAcceptedAt: new Date().toISOString() }))
       setRegId(crypto.randomUUID())
-      setStep('payment')
+      setStep(isFreeTicket ? 'freeConfirm' : 'payment')
     } catch (err) {
       console.error(err)
       setErrorMsg('Errore durante la registrazione. Riprova.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFreeConfirm = async () => {
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      const res = await fetch('/api/confirm-free', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registrationId: regId,
+          ticketId: selectedTicket.id,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          leagueEmail: form.leagueEmail,
+          phone: form.phone,
+          privacyAcceptedAt: form.privacyAcceptedAt,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Errore')
+      setPaymentMethod('free')
+      setStep('success')
+    } catch (err) {
+      console.error(err)
+      setErrorMsg(err.message || "Errore durante la conferma dell'iscrizione. Riprova.")
+      setStep('error')
     } finally {
       setLoading(false)
     }
@@ -712,19 +724,31 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
         <div>
           <div style={{ fontSize: '0.8rem', letterSpacing: '0.1em', color: 'var(--muted)', marginBottom: '1rem', textTransform: 'uppercase' }}>Scegli il ticket</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-            {tickets.map(t => (
-              <button key={t.id} onClick={() => handleTicketSelect(t)}
-                style={{ padding: '1.25rem', background: selectedTicket?.id === t.id ? 'rgba(240,180,41,0.1)' : 'var(--card)', border: `2px solid ${selectedTicket?.id === t.id ? 'var(--gold)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', fontFamily: 'var(--font-body)' }}
-                onMouseEnter={e => { if (selectedTicket?.id !== t.id) { e.currentTarget.style.borderColor = 'rgba(240,180,41,0.4)'; e.currentTarget.style.background = 'rgba(240,180,41,0.05)' } }}
-                onMouseLeave={e => { if (selectedTicket?.id !== t.id) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'var(--card)' } }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--white)' }}>{t.name}</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--gold)', lineHeight: 1 }}>€{Number(t.price).toFixed(0)}</div>
-                </div>
-                {t.description && <div style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>{t.description}</div>}
-                {t.max_participants && <div style={{ fontSize: '0.75rem', color: 'var(--gold)', marginTop: '0.5rem', opacity: 0.7 }}>Max {t.max_participants} partecipanti</div>}
-              </button>
-            ))}
+            {tickets.map(t => {
+              const soldOut = isSoldOut(t)
+              const remaining = remainingFor(t)
+              return (
+                <button key={t.id} onClick={() => handleTicketSelect(t)} disabled={soldOut}
+                  style={{ padding: '1.25rem', background: selectedTicket?.id === t.id ? 'rgba(240,180,41,0.1)' : 'var(--card)', border: `2px solid ${selectedTicket?.id === t.id ? 'var(--gold)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', cursor: soldOut ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'all 0.2s', fontFamily: 'var(--font-body)', opacity: soldOut ? 0.5 : 1 }}
+                  onMouseEnter={e => { if (!soldOut && selectedTicket?.id !== t.id) { e.currentTarget.style.borderColor = 'rgba(240,180,41,0.4)'; e.currentTarget.style.background = 'rgba(240,180,41,0.05)' } }}
+                  onMouseLeave={e => { if (!soldOut && selectedTicket?.id !== t.id) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'var(--card)' } }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--white)' }}>{t.name}</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--gold)', lineHeight: 1 }}>
+                      {Number(t.price) === 0 ? 'GRATIS' : `€${Number(t.price).toFixed(0)}`}
+                    </div>
+                  </div>
+                  {t.description && <div style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5 }}>{t.description}</div>}
+                  {soldOut ? (
+                    <div style={{ fontSize: '0.75rem', color: '#ff8080', marginTop: '0.5rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Esaurito</div>
+                  ) : t.max_participants ? (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--gold)', marginTop: '0.5rem', opacity: 0.7 }}>
+                      {remaining} posti disponibili su {t.max_participants}
+                    </div>
+                  ) : null}
+                </button>
+              )
+            })}
           </div>
 
           {/* Info box */}
@@ -746,19 +770,8 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
           {step === 'form' && (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-              {/* Tabs: Dati Iscrizione / Codice Presentazione */}
-              <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <button type="button" onClick={() => setFormTab('dati')}
-                  style={{ padding: '0.6rem 1rem', background: 'none', border: 'none', borderBottom: formTab === 'dati' ? '2px solid var(--gold)' : '2px solid transparent', color: formTab === 'dati' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
-                  Dati Iscrizione
-                </button>
-                <button type="button" onClick={() => setFormTab('invito')}
-                  style={{ padding: '0.6rem 1rem', background: 'none', border: 'none', borderBottom: formTab === 'invito' ? '2px solid var(--gold)' : '2px solid transparent', color: formTab === 'invito' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  🎟️ Codice Presentazione {inviteStatus === 'valid' && <span style={{ color: '#6ee7b7' }}>✓</span>}
-                </button>
-              </div>
-
-              {formTab === 'dati' && (
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--white)', marginBottom: '0.25rem' }}>Dati Iscrizione</div>
+              {(
                 <>
                   {/* Banner residenti Italia */}
                   <div style={{ padding: '0.875rem 1rem', background: 'rgba(74,158,255,0.08)', border: '1px solid rgba(74,158,255,0.25)', borderRadius: '8px', fontSize: '0.8rem', color: '#8ab4f8', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
@@ -787,7 +800,7 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Email di contatto *</label>
                     <input name="email" type="email" value={form.email} onChange={handleChange}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; if (inviteCodeInput.trim()) checkInviteCode(inviteCodeInput, e.target.value) }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)' }}
                       placeholder="mario@esempio.it" required style={inputStyle}
                       onFocus={e => e.target.style.borderColor = 'var(--gold)'} />
                   </div>
@@ -820,31 +833,6 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
                 </>
               )}
 
-              {formTab === 'invito' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.4rem', letterSpacing: '0.05em' }}>Codice presentazione (facoltativo)</label>
-                  <input
-                    name="inviteCodeInput"
-                    value={inviteCodeInput}
-                    onChange={e => {
-                      const v = e.target.value.toUpperCase()
-                      setInviteCodeInput(v)
-                      if (inviteStatus !== 'idle') { setInviteStatus('idle'); setInviteMessage('') }
-                    }}
-                    onBlur={() => checkInviteCode(inviteCodeInput, form.email)}
-                    placeholder="FE-XXXXXX"
-                    style={inputStyle}
-                    onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-                  />
-                  {inviteStatus === 'checking' && <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Verifica in corso...</div>}
-                  {inviteStatus === 'valid' && <div style={{ fontSize: '0.78rem', color: '#6ee7b7', marginTop: '0.5rem' }}>✓ {inviteMessage}</div>}
-                  {inviteStatus === 'invalid' && <div style={{ fontSize: '0.78rem', color: '#ff8080', marginTop: '0.5rem' }}>{inviteMessage}</div>}
-                  <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.5rem', lineHeight: 1.5 }}>
-                    Hai ricevuto un codice da un amico già iscritto? Inseriscilo per uno sconto di <strong style={{ color: 'var(--gold)' }}>€5</strong> sul tuo ticket.
-                  </div>
-                </div>
-              )}
-
               {errorMsg && (
                 <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080' }}>{errorMsg}</div>
               )}
@@ -865,20 +853,60 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
                 </span>
               </label>
 
-              {selectedTicket && discount > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                  <span style={{ color: 'var(--muted)', textDecoration: 'line-through' }}>€{Number(selectedTicket.price).toFixed(0)}</span>
-                  <span style={{ color: 'var(--gold)', fontWeight: 700 }}>€{finalPrice.toFixed(0)}</span>
-                  <span style={{ color: '#6ee7b7', fontSize: '0.78rem' }}>🎟️ sconto invito applicato</span>
-                </div>
-              )}
-
               <button type="submit" disabled={loading || !selectedTicket}
                 style={{ marginTop: '0.5rem', padding: '1rem', background: loading || !selectedTicket ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', letterSpacing: '0.05em', cursor: loading || !selectedTicket ? 'not-allowed' : 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontFamily: 'var(--font-body)' }}>
-                {loading ? <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>Salvataggio...</span> : <><TicketIcon size={18} /> Procedi al Pagamento {selectedTicket ? `— €${finalPrice.toFixed(0)}` : ''}</>}
+                {loading ? <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>Salvataggio...</span> : (
+                  <>
+                    <TicketIcon size={18} />
+                    {!selectedTicket ? 'Continua' : isFreeTicket ? 'Continua — Iscrizione Gratuita' : `Procedi al Pagamento — €${finalPrice.toFixed(0)}`}
+                  </>
+                )}
               </button>
-              <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--muted)' }}>🔒 Pagamento sicuro · Stripe, PayPal o Bonifico</div>
+              <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                {isFreeTicket ? '🎟️ Nessun pagamento richiesto' : '🔒 Pagamento sicuro · Stripe, PayPal o Bonifico'}
+              </div>
             </form>
+          )}
+
+          {step === 'freeConfirm' && selectedTicket && (
+            <div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>🎟️ Riepilogo iscrizione</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Controlla i dati prima di confermare. Nessun pagamento richiesto.</div>
+              </div>
+              <div style={{ padding: '1.25rem', background: 'rgba(240,180,41,0.06)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: '10px', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Ticket</span>
+                  <span style={{ fontWeight: 700 }}>{selectedTicket.name}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Importo</span>
+                  <span style={{ fontWeight: 700, color: 'var(--gold)' }}>GRATIS</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Nome</span>
+                  <span>{form.firstName} {form.lastName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Email</span>
+                  <span>{form.email}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Email LegheFC</span>
+                  <span>{form.leagueEmail}</span>
+                </div>
+              </div>
+              {errorMsg && (
+                <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: '8px', fontSize: '0.875rem', color: '#ff8080', marginBottom: '1rem' }}>{errorMsg}</div>
+              )}
+              <button onClick={handleFreeConfirm} disabled={loading}
+                style={{ width: '100%', padding: '1rem', background: loading ? 'rgba(240,180,41,0.3)' : 'var(--gold)', color: 'var(--black)', border: 'none', borderRadius: '100px', fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                {loading ? <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>Conferma in corso...</span> : <>✓ Conferma Iscrizione</>}
+              </button>
+              <button onClick={() => setStep('form')} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.875rem', width: '100%', textAlign: 'center', marginTop: '0.25rem' }}>
+                ← Torna indietro
+              </button>
+            </div>
           )}
 
           {step === 'payment' && (
@@ -886,9 +914,7 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
               selectedTicket={selectedTicket}
               regId={regId}
               form={form}
-              inviteCode={inviteStatus === 'valid' ? inviteCodeInput.trim().toUpperCase() : ''}
-              discount={discount}
-              onSuccess={(method, extra) => { setPaymentMethod(method); setOwnInviteCode(extra?.inviteCode || null); setStep('success') }}
+              onSuccess={(method) => { setPaymentMethod(method); setStep('success') }}
               onError={(msg) => { setErrorMsg(msg); setStep('error') }}
               onBack={() => setStep('form')}
             />
@@ -923,17 +949,12 @@ function FormIscrizione({ tickets, settings, onNavigate }) {
                   <span style={{ fontSize: '0.875rem' }}>La conferma arriverà entro 24-48 ore dal bonifico.</span>
                 </p>
               )}
-
-              {ownInviteCode ? (
-                <div style={{ background: 'var(--black)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🎁 Il tuo codice presentazione</div>
-                  <div style={{ fontFamily: 'monospace', fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.15em', color: 'var(--white)' }}>{ownInviteCode}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.5rem', lineHeight: 1.5 }}>Condividilo: chi lo usa risparmia €5, tu ricevi €5 di rimborso (fino a €100).</div>
-                </div>
-              ) : paymentMethod && paymentMethod !== 'stripe' && (
-                <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
-                  🎁 Il tuo codice presentazione personale ti verrà inviato via email alla conferma del pagamento.
-                </div>
+              {paymentMethod === 'free' && (
+                <p style={{ color: 'var(--muted)', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+                  Iscrizione completata con successo, nessun pagamento richiesto.<br />
+                  Riceverai una conferma all'indirizzo <strong style={{ color: 'var(--white)' }}>{form.email}</strong><br />
+                  L'invito alla lega LegheFC sarà inviato a <strong style={{ color: 'var(--white)' }}>{form.leagueEmail}</strong>
+                </p>
               )}
 
               <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>
@@ -1017,22 +1038,27 @@ function Footer({ settings, onNavigate }) {
    APP PRINCIPALE
 ───────────────────────────────────────────── */
 export default function App() {
-  const [settings, setSettings]   = useState(null)
-  const [tickets, setTickets]     = useState([])
-  const [documents, setDocuments] = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [page, setPage]           = useState(() => (typeof window !== 'undefined' && window.location.pathname === '/admin') ? 'admin' : 'home')
+  const [settings, setSettings]       = useState(null)
+  const [tickets, setTickets]         = useState([])
+  const [availability, setAvailability] = useState({}) // { [ticketId]: soldCount }
+  const [documents, setDocuments]     = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [page, setPage]               = useState(() => (typeof window !== 'undefined' && window.location.pathname === '/admin') ? 'admin' : 'home')
 
   useEffect(() => {
     async function loadData() {
-      const [{ data: s }, { data: t }, { data: d }] = await Promise.all([
+      const [{ data: s }, { data: t }, { data: d }, { data: avail }] = await Promise.all([
         supabase.from('settings').select('*').single(),
         supabase.from('tickets').select('*').eq('active', true).order('price'),
         supabase.from('documents').select('*').eq('visible', true).order('uploaded_at', { ascending: false }),
+        supabase.rpc('get_tickets_availability'),
       ])
       setSettings(s)
       setTickets(t || [])
       setDocuments(d || [])
+      const availMap = {}
+      ;(avail || []).forEach(row => { availMap[row.ticket_id] = row.sold_count })
+      setAvailability(availMap)
       setLoading(false)
     }
     loadData()
@@ -1086,7 +1112,7 @@ if (page === 'supporto') {
         <Hero settings={settings} />
         <Documenti documents={documents} />
         <InstagramBanner settings={settings} />
-        <FormIscrizione tickets={tickets} settings={settings} onNavigate={setPage} />
+        <FormIscrizione tickets={tickets} settings={settings} availability={availability} onNavigate={setPage} />
       </main>
       <Footer settings={settings} onNavigate={setPage} />
     </>

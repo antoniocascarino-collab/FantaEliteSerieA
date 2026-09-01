@@ -118,7 +118,8 @@ function StatCard({ label, value, sub, color }) {
    DASHBOARD
 ───────────────────────────────────────────── */
 function AdminDashboard({ onLogout }) {
-  const [tab, setTab] = useState('registrazioni') // 'registrazioni' | 'inviti' | 'supporto'
+  const [tab, setTab] = useState('ticket') // 'ticket' | 'registrazioni' | 'inviti' | 'supporto'
+  const [tickets, setTickets] = useState([])
   const [registrations, setRegistrations] = useState([])
   const [rewards, setRewards] = useState([])
   const [supportRequests, setSupportRequests] = useState([])
@@ -127,15 +128,18 @@ function AdminDashboard({ onLogout }) {
   const [savingId, setSavingId] = useState(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [ticketFilter, setTicketFilter] = useState('all')
   const [errorMsg, setErrorMsg] = useState('')
 
   const loadData = useCallback(async () => {
     const [
+      { data: tix, error: tixError },
       { data: regs, error: regError },
       { data: rew, error: rewError },
       { data: support, error: supportError },
     ] = await Promise.all([
-      supabase.from('registrations').select('*, tickets(name, price)').order('created_at', { ascending: false }),
+      supabase.from('tickets').select('*').order('price'),
+      supabase.from('registrations').select('*, tickets(name, price, max_participants)').order('created_at', { ascending: false }),
       supabase.from('invite_rewards').select(`
         *,
         owner:registrations!invite_rewards_owner_registration_id_fkey(first_name,last_name,email,invite_code),
@@ -143,10 +147,12 @@ function AdminDashboard({ onLogout }) {
       `).order('created_at', { ascending: false }),
       supabase.from('support_requests').select('*').order('created_at', { ascending: false }),
     ])
-    if (regError) setErrorMsg('Errore nel caricamento delle registrazioni: ' + regError.message)
+    if (tixError) setErrorMsg('Errore nel caricamento dei ticket: ' + tixError.message)
+    else if (regError) setErrorMsg('Errore nel caricamento delle registrazioni: ' + regError.message)
     else if (rewError) setErrorMsg('Errore nel caricamento dei rimborsi invito: ' + rewError.message)
     else if (supportError) setErrorMsg('Errore nel caricamento delle richieste di supporto: ' + supportError.message)
     else setErrorMsg('')
+    setTickets(tix || [])
     setRegistrations(regs || [])
     setRewards(rew || [])
     setSupportRequests(support || [])
@@ -230,9 +236,30 @@ function AdminDashboard({ onLogout }) {
   const rimborsiDaPagare = rewards.filter(r => r.payout_status === 'pending').reduce((sum, r) => sum + Number(r.amount || 0), 0)
   const rimborsiPagati = rewards.filter(r => r.payout_status === 'paid').reduce((sum, r) => sum + Number(r.amount || 0), 0)
 
+  // ── Statistiche per ticket ──
+  const perTicketStats = tickets.map(t => {
+    const regsForTicket = registrations.filter(r => r.ticket_id === t.id)
+    const completedForTicket = regsForTicket.filter(r => r.payment_status === 'completed')
+    const pendingForTicket = regsForTicket.filter(r => r.payment_status === 'pending')
+    const cancelledForTicket = regsForTicket.filter(r => r.payment_status === 'cancelled')
+    const incasso = completedForTicket.reduce((sum, r) => sum + Number(r.paid_amount || 0), 0)
+    const activeCount = regsForTicket.length - cancelledForTicket.length // pending + completed contano posto
+    const remaining = t.max_participants ? Math.max(0, t.max_participants - activeCount) : null
+    return {
+      ticket: t,
+      totale: regsForTicket.length,
+      paganti: completedForTicket.length,
+      inAttesa: pendingForTicket.length,
+      annullati: cancelledForTicket.length,
+      incasso,
+      remaining,
+    }
+  })
+
   // ── Filtri tabella registrazioni ──
   const filteredRegs = registrations.filter(r => {
     if (statusFilter !== 'all' && r.payment_status !== statusFilter) return false
+    if (ticketFilter !== 'all' && r.ticket_id !== ticketFilter) return false
     if (search) {
       const q = search.toLowerCase()
       const haystack = `${r.first_name} ${r.last_name} ${r.email} ${r.league_email}`.toLowerCase()
@@ -290,7 +317,11 @@ function AdminDashboard({ onLogout }) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+          <button onClick={() => setTab('ticket')}
+            style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'ticket' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'ticket' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
+            Per Ticket ({tickets.length})
+          </button>
           <button onClick={() => setTab('registrazioni')}
             style={{ padding: '0.75rem 1.25rem', background: 'none', border: 'none', borderBottom: tab === 'registrazioni' ? '2px solid var(--gold)' : '2px solid transparent', color: tab === 'registrazioni' ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
             Registrazioni ({registrations.length})
@@ -307,6 +338,42 @@ function AdminDashboard({ onLogout }) {
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--muted)' }}>Caricamento dati...</div>
+        ) : tab === 'ticket' ? (
+          /* Riepilogo per ticket */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {perTicketStats.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '12px' }}>Nessun ticket configurato.</div>
+            ) : perTicketStats.map(s => (
+              <div key={s.ticket.id} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--white)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      {s.ticket.name}
+                      {!s.ticket.active && <span style={{ fontSize: '0.7rem', color: '#ff8080', border: '1px solid #ff8080', borderRadius: '100px', padding: '0.1rem 0.6rem' }}>disattivato</span>}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.2rem' }}>
+                      {Number(s.ticket.price) === 0 ? 'Gratuito' : formatEuro(s.ticket.price)}
+                      {s.ticket.max_participants ? ` · Massimo ${s.ticket.max_participants} partecipanti` : ' · Nessun limite di partecipanti'}
+                    </div>
+                  </div>
+                  {s.ticket.max_participants && (
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: s.remaining === 0 ? '#ff8080' : 'var(--gold)', lineHeight: 1 }}>
+                        {s.remaining === 0 ? 'ESAURITO' : `${s.remaining} posti liberi`}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <StatCard label="Iscritti totali" value={s.totale} />
+                  <StatCard label="Paganti" value={s.paganti} color="#6ee7b7" />
+                  <StatCard label="In attesa" value={s.inAttesa} color="#f0b429" />
+                  <StatCard label="Annullati" value={s.annullati} color="var(--muted)" />
+                  <StatCard label="Incasso" value={formatEuro(s.incasso)} color="var(--gold)" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : tab === 'registrazioni' ? (
           <>
             {/* Filtri */}
@@ -322,6 +389,12 @@ function AdminDashboard({ onLogout }) {
                 <option value="pending">In attesa</option>
                 <option value="completed">Completati</option>
                 <option value="cancelled">Annullati</option>
+              </select>
+              <select value={ticketFilter} onChange={e => setTicketFilter(e.target.value)} style={selectStyle}>
+                <option value="all">Tutti i ticket</option>
+                {tickets.map(t => (
+                  <option key={t.id} value={t.id} style={optionStyle}>{t.name}</option>
+                ))}
               </select>
             </div>
 
