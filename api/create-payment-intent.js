@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import { revalidateInviteCode } from './_lib/inviteCode.js'
+import { checkTicketCapacity } from './_lib/capacity.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const supabase = createClient(
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { registrationId, ticketId, email, inviteCode } = req.body
+    const { registrationId, ticketId } = req.body
 
     if (!registrationId || !ticketId) {
       return res.status(400).json({ error: 'Dati mancanti' })
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     // Prezzo REALE recuperato dal database — non viene mai usato un valore inviato dal client
     const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
-      .select('name, price, active')
+      .select('id, name, price, active, max_participants')
       .eq('id', ticketId)
       .single()
 
@@ -60,28 +60,27 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Ticket non trovato o non disponibile' })
     }
 
-    // Codice presentazione: rivalidato SEMPRE lato server, mai fidandosi del client
-    const codeNormalized = (inviteCode || '').trim().toUpperCase()
-    const validated = codeNormalized ? await revalidateInviteCode(supabase, codeNormalized, email) : { valid: false, discount: 0 }
-    const discountAmount = validated.valid ? 5 : 0
+    // Verifica il numero massimo di partecipanti per questo ticket
+    const capacity = await checkTicketCapacity(supabase, ticket)
+    if (!capacity.available) {
+      return res.status(409).json({ error: 'Ticket esaurito. Scegli un altro ticket.' })
+    }
 
-    const realAmount = Math.max(0, Number(ticket.price) - discountAmount)
+    const realAmount = Number(ticket.price)
     const ticketName = ticket.name
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(realAmount * 100), // prezzo calcolato lato server, già scontato
+      amount: Math.round(realAmount * 100),
       currency: 'eur',
       metadata: {
         ticketName,
         registrationId,
         ticketId,
-        referralCodeUsed: validated.valid ? codeNormalized : '',
-        discountAmount: String(discountAmount),
       },
       description: `FantaElite — ${ticketName}`,
     })
 
-    res.status(200).json({ clientSecret: paymentIntent.client_secret, amount: realAmount, discountAmount })
+    res.status(200).json({ clientSecret: paymentIntent.client_secret, amount: realAmount, discountAmount: 0 })
   } catch (err) {
     console.error('Stripe error:', err)
     res.status(500).json({ error: err.message })

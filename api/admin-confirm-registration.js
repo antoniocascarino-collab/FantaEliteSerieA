@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import nodemailer from 'nodemailer'
-import { assignInviteCode, creditReferralReward } from './_lib/inviteCode.js'
 import { buildWelcomeEmail } from './_lib/emails.js'
 
 const supabase = createClient(
@@ -82,27 +81,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Errore aggiornamento registrazione' })
     }
 
-    // Assegna il codice presentazione personale al nuovo iscritto
-    const inviteCode = await assignInviteCode(supabase, registrationId)
-
-    // Accredita il rimborso al proprietario del codice usato, se presente e sotto il tetto dei 100€
-    if (registration.referral_code_used) {
-      const { data: owner } = await supabase
-        .from('registrations')
-        .select('id')
-        .eq('invite_code', registration.referral_code_used)
-        .eq('payment_status', 'completed')
-        .maybeSingle()
-      if (owner) {
-        await creditReferralReward(supabase, {
-          code: registration.referral_code_used,
-          ownerRegistrationId: owner.id,
-          redeemedRegistrationId: registrationId,
-        })
-      }
-    }
-
-    // Email di benvenuto (con il codice presentazione personale)
+    // Email di benvenuto
     try {
       const { subject, html } = buildWelcomeEmail({
         firstName: registration.first_name,
@@ -112,7 +91,7 @@ export default async function handler(req, res) {
         ticketName: registration.tickets?.name || '',
         amount: paidAmount,
         discountAmount,
-        inviteCode,
+        inviteCode: null,
       })
       await transporter.sendMail({
         from: `"FantaElite Serie A" <${process.env.GMAIL_USER}>`,
@@ -127,7 +106,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      registration: { id: registrationId, paid_amount: paidAmount, invite_code: inviteCode },
+      registration: { id: registrationId, paid_amount: paidAmount },
     })
   } catch (error) {
     console.error('Errore admin-confirm-registration:', error)

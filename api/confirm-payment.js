@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import nodemailer from 'nodemailer'
 import Stripe from 'stripe'
-import { assignInviteCode, creditReferralReward } from './_lib/inviteCode.js'
 import { buildWelcomeEmail } from './_lib/emails.js'
+import { checkTicketCapacity } from './_lib/capacity.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const supabase = createClient(
@@ -92,8 +92,23 @@ export default async function handler(req, res) {
 
     // 4. Importo reale verificato da Stripe — non quello inviato dal client
     const realAmount = paymentIntent.amount / 100
-    const discountAmount = Number(paymentIntent.metadata?.discountAmount || 0)
-    const referralCodeUsed = paymentIntent.metadata?.referralCodeUsed || null
+
+    // 4b. Verifica di sicurezza sul numero massimo di partecipanti: il
+    // pagamento Stripe è già andato a buon fine, quindi non blocchiamo la
+    // registrazione, ma logghiamo per un controllo manuale se il ticket
+    // risultasse sold-out nel frattempo (caso raro, doppio acquisto quasi
+    // simultaneo sull'ultimo posto).
+    const { data: ticketRow } = await supabase
+      .from('tickets')
+      .select('id, max_participants')
+      .eq('id', ticketId)
+      .maybeSingle()
+    if (ticketRow) {
+      const capacity = await checkTicketCapacity(supabase, ticketRow)
+      if (!capacity.available) {
+        console.warn(`⚠️ Registrazione ${registrationId} confermata oltre il limite max_participants del ticket ${ticketId} (pagamento Stripe già incassato — verificare manualmente).`)
+      }
+    }
 
     // 5. Crea la registrazione SOLO ora che il pagamento è confermato
     const { data: registration, error: insertError } = await supabase
@@ -112,8 +127,8 @@ export default async function handler(req, res) {
         payment_method: 'stripe',
         paid_amount: realAmount,
         paid_at: new Date().toISOString(),
-        discount_amount: discountAmount,
-        referral_code_used: referralCodeUsed,
+        discount_amount: 0,
+        referral_code_used: null,
       })
       .select('*, tickets(*)')
       .single()
@@ -126,27 +141,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Database insert failed' })
     }
 
-    // 6. Assegna il codice presentazione personale al nuovo iscritto
-    const inviteCode = await assignInviteCode(supabase, registration.id)
-
-    // 7. Se ha usato un codice invito, accredita il rimborso al proprietario (se sotto il tetto dei 100€)
-    if (referralCodeUsed) {
-      const { data: owner } = await supabase
-        .from('registrations')
-        .select('id')
-        .eq('invite_code', referralCodeUsed)
-        .eq('payment_status', 'completed')
-        .maybeSingle()
-      if (owner) {
-        await creditReferralReward(supabase, {
-          code: referralCodeUsed,
-          ownerRegistrationId: owner.id,
-          redeemedRegistrationId: registration.id,
-        })
-      }
-    }
-
-    // 8. Invia email di benvenuto via Gmail
+    // 6. Invia email di benvenuto via Gmail
     try {
       const { subject, html } = buildWelcomeEmail({
         firstName: registration.first_name,
@@ -155,8 +150,8 @@ export default async function handler(req, res) {
         leagueEmail: registration.league_email,
         ticketName: registration.tickets.name,
         amount: realAmount,
-        discountAmount,
-        inviteCode,
+        discountAmount: 0,
+        inviteCode: null,
       })
       await transporter.sendMail({
         from: `"FantaElite Serie A" <${process.env.GMAIL_USER}>`,
@@ -175,7 +170,6 @@ export default async function handler(req, res) {
         id: registration.id,
         email: registration.email,
         league_email: registration.league_email,
-        invite_code: inviteCode,
       },
     })
 

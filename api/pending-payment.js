@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import nodemailer from 'nodemailer'
-import { revalidateInviteCode } from './_lib/inviteCode.js'
+import { checkTicketCapacity } from './_lib/capacity.js'
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -105,7 +105,7 @@ function buildPayPalEmail({ firstName, lastName, email, ticketName, amount, disc
             <!-- Avviso -->
             <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:0 0 25px;">
               <p style="margin:0;color:#856404;font-size:13px;line-height:1.6;">
-                ⚠️ <strong>Importante:</strong> la tua iscrizione sarà confermata entro <strong>24-48 ore</strong> dalla ricezione del pagamento. Riceverai un'email di conferma con il tuo codice presentazione personale.
+                ⚠️ <strong>Importante:</strong> la tua iscrizione sarà confermata entro <strong>24-48 ore</strong> dalla ricezione del pagamento. Riceverai un'email di conferma.
               </p>
             </div>
 
@@ -222,7 +222,7 @@ function buildBonificoEmail({ firstName, lastName, email, ticketName, amount, di
             <!-- Avviso tempi -->
             <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:0 0 25px;">
               <p style="margin:0;color:#856404;font-size:13px;line-height:1.6;">
-                ⚠️ <strong>Tempi di conferma:</strong> la tua iscrizione sarà attivata entro <strong>24-48 ore</strong> dalla ricezione del bonifico (i tempi bancari possono variare). Riceverai un'email di conferma con il tuo codice presentazione personale.
+                ⚠️ <strong>Tempi di conferma:</strong> la tua iscrizione sarà attivata entro <strong>24-48 ore</strong> dalla ricezione del bonifico (i tempi bancari possono variare). Riceverai un'email di conferma.
               </p>
             </div>
 
@@ -282,7 +282,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Troppe richieste. Riprova tra qualche minuto.' })
   }
 
-  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone, privacyAcceptedAt, inviteCode } = req.body
+  const { registrationId, ticketId, paymentMethod, firstName, lastName, email, leagueEmail, phone, privacyAcceptedAt } = req.body
 
   if (!registrationId || !ticketId || !paymentMethod || !firstName || !lastName || !email || !leagueEmail || !phone || !privacyAcceptedAt) {
     return res.status(400).json({ error: 'Missing required fields' })
@@ -313,7 +313,7 @@ export default async function handler(req, res) {
     // 1. Prezzo REALE recuperato dal database
     const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
-      .select('name, price, active')
+      .select('id, name, price, active, max_participants')
       .eq('id', ticketId)
       .single()
 
@@ -321,13 +321,15 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Ticket non trovato o non disponibile' })
     }
 
-    // 1b. Codice presentazione: rivalidato SEMPRE lato server
-    const codeNormalized = (inviteCode || '').trim().toUpperCase()
-    const validated = codeNormalized ? await revalidateInviteCode(supabase, codeNormalized, email) : { valid: false, discount: 0 }
-    const discountAmount = validated.valid ? 5 : 0
+    // 1b. Verifica il numero massimo di partecipanti per questo ticket
+    const capacity = await checkTicketCapacity(supabase, ticket)
+    if (!capacity.available) {
+      return res.status(409).json({ error: 'Ticket esaurito. Scegli un altro ticket.' })
+    }
 
-    const amount = Math.max(0, Number(ticket.price) - discountAmount)
+    const amount = Number(ticket.price)
     const ticketName = ticket.name
+    const discountAmount = 0
 
     // 2. Crea la registrazione (pending) SOLO ora che il metodo è stato scelto
     const { data: registration, error: insertError } = await supabase
@@ -344,7 +346,7 @@ export default async function handler(req, res) {
         payment_method: paymentMethod,
         payment_status: 'pending',
         discount_amount: discountAmount,
-        referral_code_used: validated.valid ? codeNormalized : null,
+        referral_code_used: null,
       })
       .select('*, tickets(*)')
       .single()
@@ -357,8 +359,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Database insert failed' })
     }
 
-    // 3. Invia email con istruzioni (il codice presentazione personale e il rimborso
-    //    all'invitante verranno assegnati solo alla conferma del pagamento da parte dell'admin)
+    // 3. Invia email con istruzioni (l'iscrizione verrà confermata dall'admin
+    //    alla ricezione del pagamento)
     try {
       const emailData = {
         firstName: registration.first_name,
